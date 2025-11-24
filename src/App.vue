@@ -1,11 +1,8 @@
 <script setup>
- 
 </script>
 
 <template>
- <h1>Track frontend</h1>
+  <RouterView />
 </template>
 
-<style scoped>
- 
-</style>
+<style scoped></style>
