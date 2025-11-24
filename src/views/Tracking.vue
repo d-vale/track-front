@@ -28,7 +28,7 @@ const toggleTracking = async () => {
     const token = localStorage.getItem("token");
     ws.value = new WSClient("ws://localhost:8888");
     await ws.value.connect(token);
-    await ws.value.sub("gps");
+    await ws.value.sub("gps", () => {});
     isTracking.value = true;
     isPaused.value = false;
   } else {
@@ -48,13 +48,28 @@ const togglePause = () => {
 };
 
 watch(isTracking, () => {
-
   if (isTracking.value == true) {
-
     // Start GPS interval
     gpsInterval = setInterval(() => {
       if (ws.value && !isPaused.value) {
-        ws.value.pub("gps", "GPS coords");
+        const options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        };
+
+        function success(pos) {
+          ws.value.pub("gps", {
+            lat: pos.coords.latitude,
+            long: pos.coords.longitude,
+          });
+        }
+
+        function error(err) {
+          console.warn(`ERROR(${err.code}): ${err.message}`);
+        }
+
+        navigator.geolocation.getCurrentPosition(success, error, options);
       }
     }, 5000);
 
@@ -64,15 +79,12 @@ watch(isTracking, () => {
         elapsedSeconds.value++;
       }
     }, 1000);
-
   } else {
-
     // Stop intervals
     clearInterval(gpsInterval);
     gpsInterval = null;
     clearInterval(clockInterval);
     clockInterval = null;
-    
   }
 });
 
