@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onUnmounted } from "vue";
+import { ref, watch, computed, onUnmounted, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { WSClient } from "wsmini";
 
@@ -23,15 +23,42 @@ const formattedTime = computed(() => {
   )}:${String(seconds).padStart(2, "0")}`;
 });
 
+const pushCoords = (start = false, stop = false) => {
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          start,
+          stop,
+          lat: pos.coords.latitude,
+          long: pos.coords.longitude,
+        };
+        if (ws.value) {
+          ws.value.pub("gps", coords);
+        }
+        resolve();
+      },
+      (err) => {
+        console.warn(`ERROR(${err.code}): ${err.message}`);
+        resolve();
+      }
+    );
+  });
+};
+
 const toggleTracking = async () => {
   if (!isTracking.value) {
     const token = localStorage.getItem("token");
     ws.value = new WSClient("ws://localhost:8888");
     await ws.value.connect(token);
     await ws.value.sub("gps", () => {});
+    await pushCoords(true);
+
     isTracking.value = true;
     isPaused.value = false;
   } else {
+    await pushCoords(false, true);
+    await new Promise((resolve) => setTimeout(resolve, 100));
     isTracking.value = false;
     isPaused.value = false;
     elapsedSeconds.value = 0;
@@ -48,43 +75,21 @@ const togglePause = () => {
 };
 
 watch(isTracking, () => {
-  if (isTracking.value == true) {
-    // Start GPS interval
+  if (isTracking.value) {
     gpsInterval = setInterval(() => {
-      if (ws.value && !isPaused.value) {
-        const options = {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        };
-
-        function success(pos) {
-          ws.value.pub("gps", {
-            lat: pos.coords.latitude,
-            long: pos.coords.longitude,
-          });
-        }
-
-        function error(err) {
-          console.warn(`ERROR(${err.code}): ${err.message}`);
-        }
-
-        navigator.geolocation.getCurrentPosition(success, error, options);
+      if (!isPaused.value) {
+        pushCoords();
       }
     }, 5000);
 
-    // Start clock
     clockInterval = setInterval(() => {
       if (!isPaused.value) {
         elapsedSeconds.value++;
       }
     }, 1000);
   } else {
-    // Stop intervals
     clearInterval(gpsInterval);
-    gpsInterval = null;
     clearInterval(clockInterval);
-    clockInterval = null;
   }
 });
 
