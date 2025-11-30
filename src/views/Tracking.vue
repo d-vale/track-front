@@ -58,15 +58,17 @@ const toggleTracking = async () => {
     isPaused.value = false;
   } else {
     await pushCoords(false, true);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    isTracking.value = false;
-    isPaused.value = false;
-    elapsedSeconds.value = 0;
-    distance.value = null;
-    time.value = null;
-    if (ws.value) {
-      ws.value.close();
-    }
+
+    setTimeout(() => {
+      isTracking.value = false;
+      isPaused.value = false;
+      elapsedSeconds.value = 0;
+      distance.value = null;
+      time.value = null;
+      if (ws.value) {
+        ws.value.close();
+      }
+    }, 100);
   }
 };
 
