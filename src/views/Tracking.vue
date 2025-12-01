@@ -2,6 +2,7 @@
 import { ref, watch, computed, onUnmounted, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { WSClient } from "wsmini";
+import TheNavBar from "../components/TheNavBar.vue";
 
 const router = useRouter();
 const distance = ref(null);
@@ -166,6 +167,7 @@ const handleLogout = () => {
       </div>
     </div>
   </div>
+  <TheNavBar/>
 </template>
 
 <style scoped></style>
