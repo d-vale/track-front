@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../views/Login.vue';
 import Tracking from '../views/Tracking.vue';
-import Upload from '../views/Upload.vue';
+import Profile from '../views/Profile.vue';
 
 const routes = [
   {
@@ -19,9 +19,9 @@ const routes = [
     component: Tracking
   },
   {
-    path: '/upload',
-    name: 'Upload',
-    component: Upload
+    path: '/profile',
+    name: 'Profile',
+    component: Profile
   }
 ];
 
