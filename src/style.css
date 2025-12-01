@@ -10,8 +10,7 @@
   --contour-jour-calendrier-opacity: rgba(10, 9, 8, 0.35);
   --separation-grise: #666666;
   --separation-grise-opacity: rgba(102, 102, 102, 0.19);
-
-  font-family: system-ui "Inter", sans-serif;
+  --font-family: system-ui, "Inter", sans-serif;
 }
 
 .dark {
@@ -24,8 +23,11 @@
   --contour-jour-calendrier-opacity: rgba(255, 255, 255, 0.35);
   --separation-grise: #666666;
   --separation-grise-opacity: rgba(102, 102, 102, 0.19);
+  --font-family: system-ui, "Inter", sans-serif;
 }
 
 body {
   background-color: var(--base);
+  font-family: var(--font-family);
+  color: var(--noir);
 }
