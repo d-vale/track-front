@@ -4,7 +4,6 @@
 </script>
 
 <template>
-    <!-- qdwhlukvgawodsk -->
     <ActivityPreview/>
     <TheNavBar/>
 </template>
