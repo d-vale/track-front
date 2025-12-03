@@ -4,7 +4,6 @@
 </script>
 
 <template>
-    <ActivityPreview/>
     <TheNavBar/>
 </template>
 
