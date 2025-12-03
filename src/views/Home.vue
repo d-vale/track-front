@@ -1,9 +1,11 @@
 <script setup>
     import TheNavBar from '../components/TheNavBar.vue';
+    import ActivityPreview from '../components/ActivityPreview.vue';
 </script>
 
 <template>
-      <TheNavBar/>
+    <ActivityPreview/>
+    <TheNavBar/>
 </template>
 
 <style scoped>
