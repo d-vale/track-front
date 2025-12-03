@@ -2,6 +2,7 @@
 import { ref, watch, computed, onUnmounted, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { WSClient } from "wsmini";
+import { haversine } from "../../server/services/haversineFormula.mjs";
 
 const router = useRouter();
 const distance = ref(null);
@@ -23,6 +24,11 @@ const formattedTime = computed(() => {
   )}:${String(seconds).padStart(2, "0")}`;
 });
 
+const buffer = ref([]);
+const previousPoint = ref([]);
+const currentPoint = ref([]);
+const dtot = ref(0);
+
 const pushCoords = (start = false, stop = false) => {
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
@@ -33,6 +39,15 @@ const pushCoords = (start = false, stop = false) => {
           lat: pos.coords.latitude,
           long: pos.coords.longitude,
         };
+        currentPoint.value = [pos.coords.latitude, pos.coords.longitude];
+
+        if (previousPoint.value.length > 0) {
+          distance.value += haversine(previousPoint.value, currentPoint.value);
+          console.log("distance : ", distance.value );
+        }
+
+        previousPoint.value = currentPoint.value;
+
         if (ws.value) {
           ws.value.pub("gps", coords);
         }
@@ -82,7 +97,7 @@ watch(isTracking, () => {
       if (!isPaused.value) {
         pushCoords();
       }
-    }, 5000);
+    }, 1000);
 
     clockInterval = setInterval(() => {
       if (!isPaused.value) {
