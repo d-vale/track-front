@@ -1,8 +1,8 @@
 export const haversine = (point1, point2) => {
-  const lon1 = point1.geometry.coordinates[0];
-  const lat1 = point1.geometry.coordinates[1];
-  const lon2 = point2.geometry.coordinates[0];
-  const lat2 = point2.geometry.coordinates[1];
+  const lon1 = point1[0];
+  const lat1 = point1[1];
+  const lon2 = point2[0];
+  const lat2 = point2[1];
 
   const R = 6371e3; // metres 
   const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians

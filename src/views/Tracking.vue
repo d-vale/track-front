@@ -1,18 +1,37 @@
 <script setup>
 import { ref, watch, computed, onUnmounted, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { WSClient } from "wsmini";
 import TheNavBar from "../components/TheNavBar.vue";
+import { gpsService } from "../services/gpsService";
+import { storageService } from "../services/storageService";
+import { haversine } from "../utils/haversine.mjs";
+import { v4 } from "uuid";
 
 const router = useRouter();
-const distance = ref(null);
-const time = ref(null);
-const ws = ref(null);
+const timeout = ref(null);
+const ACTIVTIY_ID = ref(null);
+
 const isTracking = ref(false);
 const isPaused = ref(false);
+const time = ref(null);
 const elapsedSeconds = ref(0);
-let gpsInterval = null;
-let clockInterval = null;
+const started_at = ref(0);
+const stopped_at = ref(0);
+
+const distance = ref(0);
+const lastPoint = ref(null);
+const currentPoint = ref(null);
+
+const lapDistance = ref(0);
+const lapNumber = ref(1);
+const lapElevationGain = ref(0);
+const lapElevationLoss = ref(0);
+const lapStartTimestamp = ref(null);
+
+const currentHeight = ref(null);
+const lastHeight = ref(null);
+const elevationGain = ref(0);
+const elevationLoss = ref(0);
 
 const formattedTime = computed(() => {
   const hours = Math.floor(elapsedSeconds.value / 3600);
@@ -24,82 +43,130 @@ const formattedTime = computed(() => {
   )}:${String(seconds).padStart(2, "0")}`;
 });
 
-const pushCoords = (start = false, stop = false) => {
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          start,
-          stop,
-          lat: pos.coords.latitude,
-          long: pos.coords.longitude,
-        };
-        if (ws.value) {
-          ws.value.pub("gps", coords);
-        }
-        resolve();
-      },
-      (err) => {
-        console.warn(`ERROR(${err.code}): ${err.message}`);
-        resolve();
-      }
-    );
-  });
+const formattedDistance = computed(() => {
+  return (distance.value / 1000).toFixed(2);
+});
+
+const updateDistance = () => {
+  if (lastPoint.value) {
+    let d = haversine(lastPoint.value, currentPoint.value);
+    d < 12.5 ? (distance.value += d) : distance.value; // vitesse max humaine running 12.42m/s (2009)
+
+    lapDistance.value += d;
+
+    if (lapDistance.value >= 1000) {
+      saveLap();
+    }
+  }
 };
 
-const toggleTracking = async () => {
-  if (!isTracking.value) {
-    const token = localStorage.getItem("token");
-    ws.value = new WSClient("ws://localhost:8888");
-    await ws.value.connect(token);
-    await ws.value.sub("gps", () => {});
-    await pushCoords(true);
+const calcPace = (timeMs, distanceMeters) => {
+  if (distanceMeters === 0) return "0:00";
 
-    isTracking.value = true;
-    isPaused.value = false;
-  } else {
-    await pushCoords(false, true);
+  const timeInSeconds = timeMs / 1000;
+  const paceForOneKm = (timeInSeconds * 1000) / distanceMeters; // secondes par km
 
-    setTimeout(() => {
-      isTracking.value = false;
-      isPaused.value = false;
-      elapsedSeconds.value = 0;
-      distance.value = null;
-      time.value = null;
-      if (ws.value) {
-        ws.value.close();
-      }
-    }, 100);
+  const min = Math.floor(paceForOneKm / 60);
+  const sec = Math.round(paceForOneKm % 60);
+
+  return `${min}:${String(sec).padStart(2, "0")}`;
+};
+
+const saveLap = () => {
+  let started_at = lapStartTimestamp.value;
+  let finished_at = Date.now();
+  let time = finished_at - started_at;
+  let pace = calcPace(time, lapDistance.value);
+
+  let lap = {
+    lap: lapNumber.value,
+    distance: lapDistance.value,
+    elevationGain: lapElevationGain.value,
+    elevationLoss: lapElevationLoss.value,
+    pace,
+    started_at,
+    finished_at,
+  };
+
+  lapDistance.value = 0;
+  lapElevationGain.value = 0;
+  lapElevationLoss.value = 0;
+  lapNumber.value += 1;
+  lapStartTimestamp.value = Date.now();
+  stopped_at.value = finished_at;
+
+  storageService.addLap(ACTIVTIY_ID.value, lap);
+};
+
+const updateElevationGainLoss = () => {
+  console.log("Height : ", currentHeight.value);
+
+  if (currentHeight.value != null && lastHeight.value != null) {
+    let diff = currentHeight.value - lastHeight.value; // (-) = perte (+) = gain
+    diff < 0
+      ? (elevationLoss.value += Math.abs(diff))
+      : (elevationGain.value += Math.abs(diff));
   }
+
+  console.log("D+ : ", elevationGain.value);
+  console.log("D- : ", elevationLoss.value);
+};
+
+const startTracking = async () => {
+  currentPoint.value = await gpsService.getPos();
+  currentHeight.value = await storageService.addPoint(
+    currentPoint.value,
+    ACTIVTIY_ID.value
+  ); // si connexion, addPoint() retourne la hauteur du point ajouté, sinon null
+  updateDistance();
+  updateElevationGainLoss();
+
+  elapsedSeconds.value++;
+  lastPoint.value = currentPoint.value;
+  lastHeight.value = currentHeight.value;
+
+  timeout.value = setTimeout(() => startTracking(), 1000);
+};
+
+const stopTracking = () => {
+  clearTimeout(timeout.value);
 };
 
 const togglePause = () => {
+  !isPaused.value ? stopTracking() : startTracking();
   isPaused.value = !isPaused.value;
 };
 
-watch(isTracking, () => {
-  if (isTracking.value) {
-    gpsInterval = setInterval(() => {
-      if (!isPaused.value) {
-        pushCoords();
-      }
-    }, 5000);
-
-    clockInterval = setInterval(() => {
-      if (!isPaused.value) {
-        elapsedSeconds.value++;
-      }
-    }, 1000);
+const toggleTracking = () => {
+  if (!isTracking.value) {
+    set();
+    storageService.init(ACTIVTIY_ID.value, started_at.value);
+    startTracking();
   } else {
-    clearInterval(gpsInterval);
-    clearInterval(clockInterval);
+    saveLap();
+    stopTracking();
+    storageService.finish(ACTIVTIY_ID.value, stopped_at.value);
+    reset();
   }
-});
+  isTracking.value = !isTracking.value;
+};
+
+const set = () => {
+  started_at.value = Date.now();
+  lapStartTimestamp.value = started_at.value;
+  ACTIVTIY_ID.value = v4();
+};
+
+const reset = () => {
+  ACTIVTIY_ID.value = null;
+  elapsedSeconds.value = 0;
+  distance.value = null;
+  time.value = null;
+  lapNumber.value = 0;
+};
 
 onUnmounted(() => {
-  if (gpsInterval) clearInterval(gpsInterval);
-  if (clockInterval) clearInterval(clockInterval);
-  if (ws.value) ws.value.close();
+  stopTracking();
 });
 
 const handleLogout = () => {
@@ -128,9 +195,7 @@ const handleLogout = () => {
 
         <div class="flex flex-col gap-2 p-4 rounded-lg border border-gray-600">
           <span class="text-sm text-gray-400">Distance</span>
-          <span class="text-3xl font-semibold"
-            >{{ distance ? distance : " - " }} km</span
-          >
+          <span class="text-3xl font-semibold">{{ formattedDistance }} km</span>
         </div>
 
         <div class="flex flex-col gap-2 p-4 rounded-lg border border-gray-600">
@@ -167,7 +232,7 @@ const handleLogout = () => {
       </div>
     </div>
   </div>
-  <TheNavBar/>
+  <TheNavBar />
 </template>
 
 <style scoped></style>
