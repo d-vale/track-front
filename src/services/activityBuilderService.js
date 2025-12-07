@@ -38,7 +38,11 @@ export const activityBuilderService = {
     const totalPoints = localActivity.trace.length;
     const samplingRate = 1;
 
-    const estimatedCalories = calculateCalories(elevationGain, distance, moving_duration)
+    const estimatedCalories = calculateCalories(
+      elevationGain,
+      distance,
+      moving_duration
+    );
 
     const finalActiviy = {
       date,
@@ -66,13 +70,12 @@ export const activityBuilderService = {
       totalPoints,
       samplingRate,
 
-      estimatedCalories
+      estimatedCalories,
     };
 
-    console.log("ready to be sent to server : ", finalActiviy);
+    return finalActiviy;
   },
 };
-
 
 function encode_trace(trace) {
   const coordinates = trace.map((point) => [

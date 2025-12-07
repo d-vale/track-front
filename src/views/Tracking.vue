@@ -120,7 +120,6 @@ const startTracking = async () => {
 
 const stopTracking = () => {
   clearTimeout(timeout.value);
-  activityBuilderService.create(ACTIVTIY_ID.value, elapsedSeconds.value);
 };
 
 const togglePause = () => {
@@ -128,18 +127,58 @@ const togglePause = () => {
   isPaused.value = !isPaused.value;
 };
 
-const toggleTracking = () => {
+const toggleTracking = async () => {
   if (!isTracking.value) {
     set();
     onDeviceStorageService.init(ACTIVTIY_ID.value, started_at.value);
     startTracking();
   } else {
-    saveLap();
-    onDeviceStorageService.finish(ACTIVTIY_ID.value, stopped_at.value);
-    stopTracking();
-    reset();
+    try {
+      saveLap();
+      onDeviceStorageService.finish(ACTIVTIY_ID.value, stopped_at.value);
+      stopTracking();
+      await send();
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      reset();
+    }
   }
   isTracking.value = !isTracking.value;
+};
+const send = async () => {
+  const activity = await activityBuilderService.create(
+    ACTIVTIY_ID.value,
+    elapsedSeconds.value
+  );
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    console.error("Not authenticated, please login");
+  }
+
+  console.log("Sended activtiy : ", activity);
+
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(activity),
+  };
+
+  if (navigator.onLine) {
+    const res = await fetch("/api/activities", options);
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+      localStorage.removeItem(ACTIVTIY_ID.value);
+    }
+  } else {
+    localStorage.setItem(ACTIVTIY_ID.value, JSON.stringify({data : {...activity}, toSend:true}));
+  }
 };
 
 const set = () => {
