@@ -1,12 +1,14 @@
 <script setup>
-    import TheNavBar from '../components/TheNavBar.vue';
-    import ActivityPreview from '../components/ActivityPreview.vue';
+import TheNavBar from "../components/TheNavBar.vue";
+import ActivityPreview from "../components/ActivityPreview.vue";
+import TheHeader from "../components/TheHeader.vue";
 </script>
 
 <template>
-    <ActivityPreview/>
-    <TheNavBar/>
+  <TheHeader />
+
+  <ActivityPreview />
+  <TheNavBar />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,10 +1,11 @@
 <script setup>
-    import TheNavBar from '../components/TheNavBar.vue';
+import TheNavBar from "../components/TheNavBar.vue";
+import TheHeader from "../components/TheHeader.vue";
 </script>
 
 <template>
-  <TheNavBar/>
+  <TheHeader />
+  <TheNavBar />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onUnmounted, onMounted } from "vue";
+import { ref, computed, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import TheNavBar from "../components/TheNavBar.vue";
 import { geolocationService } from "../services/geolocationService.js";
@@ -8,6 +8,18 @@ import { haversine } from "../utils/haversine.mjs";
 import { calcPace } from "../utils/paceCalculator.js";
 import { v4 } from "uuid";
 import { activityBuilderService } from "../services/activityBuilderService.js";
+import TheHeader from "../components/TheHeader.vue";
+const theme = ref(
+  document.querySelector("body").classList.contains("dark") ? "dark" : "light"
+);
+
+const toggleTheme = () => {
+  document.querySelector("body").classList.toggle("dark");
+  theme.value = document.querySelector("body").classList.contains("dark")
+    ? "dark"
+    : "light";
+  localStorage.setItem("theme", theme.value);
+};
 
 const router = useRouter();
 const timeout = ref(null);
@@ -177,7 +189,10 @@ const send = async () => {
       localStorage.removeItem(ACTIVTIY_ID.value);
     }
   } else {
-    localStorage.setItem(ACTIVTIY_ID.value, JSON.stringify({data : {...activity}, toSend:true}));
+    localStorage.setItem(
+      ACTIVTIY_ID.value,
+      JSON.stringify({ data: { ...activity }, toSend: true })
+    );
   }
 };
 
@@ -198,21 +213,11 @@ const reset = () => {
 onUnmounted(() => {
   stopTracking();
 });
-
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  router.push("/login");
-};
 </script>
 
 <template>
   <div class="flex flex-col w-full min-h-screen">
-    <header
-      class="flex justify-between items-center px-8 py-4 border-b border-gray-600"
-    >
-      <h2 class="text-xl font-semibold">Track App</h2>
-      <button @click="handleLogout()" class="text-sm">Logout</button>
-    </header>
+    <TheHeader />
 
     <div class="flex flex-col items-center gap-8 flex-1 pt-8">
       <h1 class="text-5xl font-normal leading-tight">Tracking</h1>

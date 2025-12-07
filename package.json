@@ -12,6 +12,7 @@
     "@mapbox/polyline": "^1.2.1",
     "@tailwindcss/vite": "^4.1.17",
     "cloudinary": "^2.8.0",
+    "lucide-vue-next": "^0.556.0",
     "swiss-projection": "^2.0.5",
     "tailwindcss": "^4.1.17",
     "uuid": "^13.0.0",
