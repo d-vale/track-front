@@ -1,6 +1,6 @@
 let wgsCoordinates = [];
 
-export const gpsService = {
+export const geolocationService = {
   getPos: () => {
     const options = {
       enableHighAccuracy: true,

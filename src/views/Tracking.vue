@@ -2,10 +2,12 @@
 import { ref, watch, computed, onUnmounted, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import TheNavBar from "../components/TheNavBar.vue";
-import { gpsService } from "../services/gpsService";
-import { storageService } from "../services/storageService";
+import { geolocationService } from "../services/geolocationService.js";
+import { onDeviceStorageService } from "../services/onDeviceStorageService.js";
 import { haversine } from "../utils/haversine.mjs";
+import { calcPace } from "../utils/paceCalculator.js";
 import { v4 } from "uuid";
+import { activityBuilderService } from "../services/activityBuilderService.js";
 
 const router = useRouter();
 const timeout = ref(null);
@@ -60,18 +62,6 @@ const updateDistance = () => {
   }
 };
 
-const calcPace = (timeMs, distanceMeters) => {
-  if (distanceMeters === 0) return "0:00";
-
-  const timeInSeconds = timeMs / 1000;
-  const paceForOneKm = (timeInSeconds * 1000) / distanceMeters; // secondes par km
-
-  const min = Math.floor(paceForOneKm / 60);
-  const sec = Math.round(paceForOneKm % 60);
-
-  return `${min}:${String(sec).padStart(2, "0")}`;
-};
-
 const saveLap = () => {
   let started_at = lapStartTimestamp.value;
   let finished_at = Date.now();
@@ -95,7 +85,7 @@ const saveLap = () => {
   lapStartTimestamp.value = Date.now();
   stopped_at.value = finished_at;
 
-  storageService.addLap(ACTIVTIY_ID.value, lap);
+  onDeviceStorageService.addLap(ACTIVTIY_ID.value, lap);
 };
 
 const updateElevationGainLoss = () => {
@@ -113,8 +103,8 @@ const updateElevationGainLoss = () => {
 };
 
 const startTracking = async () => {
-  currentPoint.value = await gpsService.getPos();
-  currentHeight.value = await storageService.addPoint(
+  currentPoint.value = await geolocationService.getPos();
+  currentHeight.value = await onDeviceStorageService.addPoint(
     currentPoint.value,
     ACTIVTIY_ID.value
   ); // si connexion, addPoint() retourne la hauteur du point ajouté, sinon null
@@ -130,6 +120,7 @@ const startTracking = async () => {
 
 const stopTracking = () => {
   clearTimeout(timeout.value);
+  activityBuilderService.create(ACTIVTIY_ID.value, elapsedSeconds.value);
 };
 
 const togglePause = () => {
@@ -140,12 +131,12 @@ const togglePause = () => {
 const toggleTracking = () => {
   if (!isTracking.value) {
     set();
-    storageService.init(ACTIVTIY_ID.value, started_at.value);
+    onDeviceStorageService.init(ACTIVTIY_ID.value, started_at.value);
     startTracking();
   } else {
     saveLap();
+    onDeviceStorageService.finish(ACTIVTIY_ID.value, stopped_at.value);
     stopTracking();
-    storageService.finish(ACTIVTIY_ID.value, stopped_at.value);
     reset();
   }
   isTracking.value = !isTracking.value;

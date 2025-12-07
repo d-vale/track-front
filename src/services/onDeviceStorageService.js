@@ -1,6 +1,6 @@
 import { getAltitude } from "../utils/getAltitude.js";
 
-export const storageService = {
+export const onDeviceStorageService = {
   init: (id, started_at) => {
     if (!localStorage.getItem(id)) {
       localStorage.setItem(
@@ -19,11 +19,11 @@ export const storageService = {
   },
 
   addPoint: async (point, id) => {
-    let data = { height: null };
+    let altitude = null
 
     if (navigator.onLine) {
       const result = await getAltitude(point);
-      data.height = result.height;
+      altitude = result.height;
     }
 
     const activity = JSON.parse(localStorage.getItem(id));
@@ -34,13 +34,13 @@ export const storageService = {
         coordinates: point, // [longitude, latitude]
       },
       timestamp: Date.now(),
-      altitude: data.height, // altitude en mètres
+      altitude, // altitude en mètres
     };
 
     activity.trace.push(geoJSON);
     localStorage.setItem(id, JSON.stringify(activity));
 
-    return data.height;
+    return altitude;
   },
 
   addLap: (id, lap) => {
