@@ -3,10 +3,11 @@ import "./style.css";
 import App from "./App.vue";
 import router from "./router";
 
-const theme = localStorage.getItem("theme");
+let theme = localStorage.getItem("theme");
 
 if (!theme) {
-  theme = localStorage.setItem("theme", "dark");
+  theme = "dark";
+  localStorage.setItem("theme", theme);
   document.querySelector("body").classList.add("dark");
 } else {
   if (theme == "light") {
