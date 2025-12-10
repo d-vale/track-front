@@ -16,15 +16,15 @@ const handleLogin = async () => {
     }),
   };
 
-  const res = await fetch("/api/auth/login", options);
-  const data = await res.json();
+  let res = await fetch("/api/auth/login", options);
+  res = await res.json();
 
-  if (data.success) {
-    localStorage.setItem("token", data.token);
+
+  if (res.success) {
+    localStorage.setItem("token", res.data.token);
     router.push("/tracking");
   } else {
-    console.log(data);
-    console.error(`ERROR : ${data.error.code} - MESSAGE : ${data.error.message} `);
+    console.error(`ERROR : ${res.data.error.code} - MESSAGE : ${res.data.error.message} `);
   }
 };
 </script>
