@@ -6,7 +6,7 @@ import TheHeader from "@/components/TheHeader.vue";
 
 <template>
   <TheHeader />
-
+  <WeekPreview/>
   <ActivityPreview />
   <TheNavBar />
 </template>
