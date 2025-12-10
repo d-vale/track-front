@@ -11,7 +11,6 @@ export const activityBuilderService = {
     if (!localActivity) return;
 
     const date = new Date();
-    const activityType = "run";
 
     const startedAt = localActivity.started_at;
     const stoppedAt = localActivity.stopped_at;
@@ -46,7 +45,6 @@ export const activityBuilderService = {
 
     const finalActiviy = {
       date,
-      activityType,
 
       startedAt,
       stoppedAt,

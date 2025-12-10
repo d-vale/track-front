@@ -95,6 +95,10 @@ const updateElevationGainLoss = () => {
     diff < 0
       ? (elevationLoss.value += Math.abs(diff))
       : (elevationGain.value += Math.abs(diff));
+
+    diff < 0
+      ? (lapElevationLoss.value += Math.abs(diff))
+      : (lapElevationGain.value += Math.abs(diff));
   }
 
   console.log("D+ : ", elevationGain.value);
@@ -218,13 +222,6 @@ onUnmounted(() => {
         <div class="flex flex-col gap-2 p-4 rounded-lg border border-gray-600">
           <span class="text-sm text-gray-400">Distance</span>
           <span class="text-3xl font-semibold">{{ formattedDistance }} km</span>
-        </div>
-
-        <div class="flex flex-col gap-2 p-4 rounded-lg border border-gray-600">
-          <span class="text-sm text-gray-400">Temps</span>
-          <span class="text-3xl font-semibold"
-            >{{ time ? time : " - " }} min</span
-          >
         </div>
 
         <div class="flex gap-2">
