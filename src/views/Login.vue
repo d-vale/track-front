@@ -17,13 +17,14 @@ const handleLogin = async () => {
   };
 
   const res = await fetch("/api/auth/login", options);
-  const data = await res.json();   
+  const data = await res.json();
 
-  if (data.token) {
+  if (data.success) {
     localStorage.setItem("token", data.token);
     router.push("/tracking");
   } else {
-    console.error(data.message)
+    console.log(data);
+    console.error(`ERROR : ${data.error.code} - MESSAGE : ${data.error.message} `);
   }
 };
 </script>
@@ -55,7 +56,6 @@ const handleLogin = async () => {
       </button>
     </form>
   </div>
-  
 </template>
 
 <style scoped></style>
