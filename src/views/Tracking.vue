@@ -1,27 +1,14 @@
 <script setup>
 import { ref, computed, onUnmounted } from "vue";
-import { useRouter } from "vue-router";
-import TheNavBar from "../components/TheNavBar.vue";
-import { geolocationService } from "../services/geolocationService.js";
-import { onDeviceStorageService } from "../services/onDeviceStorageService.js";
-import { haversine } from "../utils/haversine.mjs";
-import { calcPace } from "../utils/paceCalculator.js";
 import { v4 } from "uuid";
-import { activityBuilderService } from "../services/activityBuilderService.js";
-import TheHeader from "../components/TheHeader.vue";
-const theme = ref(
-  document.querySelector("body").classList.contains("dark") ? "dark" : "light"
-);
+import { geolocationService } from "@/services/geolocationService.js";
+import { onDeviceStorageService } from "@/services/onDeviceStorageService.js";
+import { haversine } from "@/utils/haversine.mjs";
+import { calcPace } from "@/utils/paceCalculator.js";
+import { activityBuilderService } from "@/services/activityBuilderService.js";
+import TheNavBar from "@/components/TheNavBar.vue";
+import TheHeader from "@/components/TheHeader.vue";
 
-const toggleTheme = () => {
-  document.querySelector("body").classList.toggle("dark");
-  theme.value = document.querySelector("body").classList.contains("dark")
-    ? "dark"
-    : "light";
-  localStorage.setItem("theme", theme.value);
-};
-
-const router = useRouter();
 const timeout = ref(null);
 const ACTIVTIY_ID = ref(null);
 

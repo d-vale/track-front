@@ -1,8 +1,7 @@
 <script setup>
-import TheNavBar from "../components/TheNavBar.vue";
-import ActivityPreview from "../components/ActivityPreview.vue";
-import TheHeader from "../components/TheHeader.vue";
-import WeekPreview from "../components/WeekPreview.vue";
+import TheNavBar from "@/components/TheNavBar.vue";
+import ActivityPreview from "@/components/ActivityPreview.vue";
+import TheHeader from "@/components/TheHeader.vue";
 </script>
 
 <template>

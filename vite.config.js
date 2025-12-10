@@ -4,15 +4,19 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": "/src",
+    },
+  },
   server: {
-    // host: '0.0.0.0',
     cors: true,
     proxy: {
       "/api": {
         target: "http://localhost:3030",
         changeOrigin: true,
         secure: false,
-      }
+      },
     },
   },
 });
