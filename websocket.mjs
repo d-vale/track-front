@@ -6,7 +6,9 @@ const wsHost = import.meta.env.VITE_WS_HOST ?? "localhost";
 const wsPort = import.meta.env.VITE_WS_PORT ?? "8080";
 const wsProtocol = import.meta.env.VITE_WS_PROTOCOL ?? "wss";
 
-export const ws = new WSClient(`${wsProtocol}://${wsHost}:${wsPort}`);
+const wsUrl = import.meta.env.PROD ? `${wsProtocol}://${wsHost}` : `${wsProtocol}://${wsHost}:${wsPort}`
+
+export const ws = new WSClient(wsUrl);
 
 // Refs vue pour l'affichage
 export const users_count = ref(null);
