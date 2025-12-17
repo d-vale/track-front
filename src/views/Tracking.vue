@@ -174,13 +174,11 @@ const send = async () => {
       console.error(
         `Network ERROR: ${error.value.status} - ${error.value.statusText}`
       );
-    } else if (data.value?.error) {
+    } else if (data.value?.success === false) {
       console.error(
         `API ERROR: ${data.value.error.code} - ${data.value.error.message}`
       );
     }
-
-    console.log(data.value);
   } else {
     localStorage.setItem(
       ACTIVTIY_ID.value,
