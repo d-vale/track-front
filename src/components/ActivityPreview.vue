@@ -1,60 +1,46 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useFetchJson } from '../composables/useFetchJson.js'
+
+// Déclaration du fetch pour récupérer toutes les activités
+const { data, error, execute } = useFetchJson({
+  url: '/api/activities',
+  method: 'GET',
+  immediate: false,
+})
 
 // État des activités
 const activities = ref([])
 const loading = ref(true)
-const error = ref(null)
 
-// Récupérer toutes les activités depuis l'API
-const fetchActivities = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    
-    const token = localStorage.getItem('token')
-    if (!token) {
-      error.value = 'Non authentifié, veuillez vous connecter'
-      return
-    }
+// Surveiller les changements de data et error
+watch([data, error], async () => {
+  loading.value = false
+  
+  if (error.value) {
+    console.error('Erreur API:', error.value)
+    return
+  }
 
-    const response = await fetch('/api/activities', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (!response.ok) {
-      error.value = `Erreur ${response.status}: ${response.statusText}`
-      return
-    }
-
-    const data = await response.json()
-    console.log('API Response:', data)
+  if (data.value) {
+    console.log('API Response:', data.value)
     
     // Récupérer et trier les activités de la plus récente à la plus ancienne
-    if (Array.isArray(data)) {
-      console.log('Data is array, length:', data.length)
-      activities.value = data.sort((a, b) => {
-        return new Date(b.date) - new Date(a.date)
-      })
-    } else if (data.data && Array.isArray(data.data)) {
-      console.log('Data.data is array, length:', data.data.length)
-      activities.value = data.data.sort((a, b) => {
-        return new Date(b.date) - new Date(a.date)
-      })
-    } else {
-      console.log('Unexpected data format:', typeof data, data)
+    let activitiesArray = []
+    
+    if (Array.isArray(data.value)) {
+      activitiesArray = data.value
+    } else if (data.value.data && Array.isArray(data.value.data)) {
+      activitiesArray = data.value.data
     }
-  } catch (err) {
-    error.value = err.message || 'Erreur lors du chargement des activités'
-    console.error('Erreur API:', err)
-  } finally {
-    loading.value = false
+    
+    if (activitiesArray.length > 0) {
+      activities.value = activitiesArray.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date)
+      })
+    }
   }
-}
+})
 
 // Formater la date et l'heure
 const formatDateTime = (isoDate) => {
@@ -83,8 +69,9 @@ const formatDuration = (milliseconds) => {
 }
 
 // Charger les activités au montage du composant
-onMounted(() => {
-  fetchActivities()
+onMounted(async () => {
+  loading.value = true
+  await execute()
 })
 </script>
 
@@ -97,7 +84,7 @@ onMounted(() => {
 
     <!-- État d'erreur -->
     <div v-else-if="error" class="text-center py-8 text-red-600">
-      <p class="text-sm font-medium">{{ error }}</p>
+      <p class="text-sm font-medium">{{ typeof error === 'string' ? error : 'Erreur lors du chargement des activités' }}</p>
     </div>
 
     <!-- Liste des activités -->
