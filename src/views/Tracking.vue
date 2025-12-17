@@ -6,8 +6,25 @@ import { onDeviceStorageService } from "@/services/onDeviceStorageService.js";
 import { haversine } from "@/utils/haversine.mjs";
 import { calcPace } from "@/utils/paceCalculator.js";
 import { activityBuilderService } from "@/services/activityBuilderService.js";
+import { useFetchJson } from "@/composables/useFetchJson";
 import TheNavBar from "@/components/TheNavBar.vue";
 import TheHeader from "@/components/TheHeader.vue";
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+  console.error("Not authenticated, please login");
+}
+
+const { data, error, execute } = useFetchJson({
+  url: "/api/activities",
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  immediate: false,
+});
 
 const timeout = ref(null);
 const ACTIVTIY_ID = ref(null);
@@ -155,29 +172,17 @@ const send = async () => {
     elapsedSeconds.value
   );
 
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    console.error("Not authenticated, please login");
-  }
-
   console.log("Sended activtiy : ", activity);
 
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(activity),
-  };
-
   if (navigator.onLine) {
-    const res = await fetch("/api/activities", options);
-    const data = await res.json();
+    await execute(activity);
     console.log(data);
     if (data.success) {
       localStorage.removeItem(ACTIVTIY_ID.value);
+    } else {
+      console.error(
+        `ERROR : ${data.error.code} - MESSAGE : ${data.error.message}`
+      );
     }
   } else {
     localStorage.setItem(
