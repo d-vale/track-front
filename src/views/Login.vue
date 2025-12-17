@@ -41,7 +41,8 @@ const handleLogin = async () => {
 
 <template>
   <div class="flex flex-col items-center gap-8 min-h-screen justify-center">
-    <h1 class="text-5xl font-normal leading-tight">Track frontend</h1>
+    <h1 class="text-5xl font-normal leading-tight">TRACK</h1>
+        <h2 class="text-5xl leading-tight">Se connecter</h2>
     <form
       @submit.prevent="handleLogin()"
       class="flex flex-col gap-4 w-full max-w-sm"
@@ -65,6 +66,12 @@ const handleLogin = async () => {
         Login
       </button>
     </form>
+    <p class="text-sm text-gray-400">
+      Vous n'avez pas de compte?
+      <router-link to="/register" class="text-indigo-500 hover:text-indigo-400">
+        En créer un
+      </router-link>
+    </p>
   </div>
 </template>
 
