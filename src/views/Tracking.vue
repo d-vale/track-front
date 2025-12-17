@@ -171,10 +171,16 @@ const send = async () => {
       localStorage.removeItem(ACTIVTIY_ID.value);
       console.log("Activity saved successfully");
     } else if (error.value) {
-      console.error(`Network ERROR: ${error.value.status} - ${error.value.statusText}`);
+      console.error(
+        `Network ERROR: ${error.value.status} - ${error.value.statusText}`
+      );
     } else if (data.value?.error) {
-      console.error(`API ERROR: ${data.value.error.code} - ${data.value.error.message}`);
+      console.error(
+        `API ERROR: ${data.value.error.code} - ${data.value.error.message}`
+      );
     }
+
+    console.log(data.value);
   } else {
     localStorage.setItem(
       ACTIVTIY_ID.value,
