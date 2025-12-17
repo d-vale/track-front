@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Sun, Moon } from 'lucide-vue-next';
-import { users_count } from "../../websocket.mjs";
+import { users_count, ws } from "../../websocket.mjs";
 
 const router = useRouter();
 const theme = ref(document.querySelector("body").classList.contains("dark") ? "dark" : "light");
@@ -16,6 +16,7 @@ const toggleTheme = () => {
 const handleLogout = () => {
   localStorage.removeItem("token");
   router.push("/login");
+  ws.close();
 };
 </script>
 
