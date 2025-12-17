@@ -2,9 +2,14 @@ import { createApp } from "vue";
 import "./style.css";
 import App from "./App.vue";
 import router from "./router";
-import { setDefaultBaseUrl } from "./libs/fetchJson";
+import { setDefaultBaseUrl, setDefaultHeaders } from "./libs/fetchJson";
 
 setDefaultBaseUrl(import.meta.env.VITE_API_BASE_URL);
+
+const token = localStorage.getItem("token");
+if (token) {
+  setDefaultHeaders({ Authorization: `Bearer ${token}` });
+}
 
 let theme = localStorage.getItem("theme");
 

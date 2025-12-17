@@ -10,19 +10,9 @@ import { useFetchJson } from "@/composables/useFetchJson";
 import TheNavBar from "@/components/TheNavBar.vue";
 import TheHeader from "@/components/TheHeader.vue";
 
-const token = localStorage.getItem("token");
-
-if (!token) {
-  console.error("Not authenticated, please login");
-}
-
 const { data, error, execute } = useFetchJson({
   url: "/api/activities",
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  },
   immediate: false,
 });
 
@@ -172,23 +162,25 @@ const send = async () => {
     elapsedSeconds.value
   );
 
-  console.log("Sended activtiy : ", activity);
+  console.log("Sended activity: ", activity);
 
   if (navigator.onLine) {
     await execute(activity);
-    console.log(data);
-    if (data.success) {
+
+    if (data.value?.success) {
       localStorage.removeItem(ACTIVTIY_ID.value);
-    } else {
-      console.error(
-        `ERROR : ${data.error.code} - MESSAGE : ${data.error.message}`
-      );
+      console.log("Activity saved successfully");
+    } else if (error.value) {
+      console.error(`Network ERROR: ${error.value.status} - ${error.value.statusText}`);
+    } else if (data.value?.error) {
+      console.error(`API ERROR: ${data.value.error.code} - ${data.value.error.message}`);
     }
   } else {
     localStorage.setItem(
       ACTIVTIY_ID.value,
       JSON.stringify({ data: { ...activity }, toSend: true })
     );
+    console.log("Activity saved offline, will sync when online");
   }
 };
 
