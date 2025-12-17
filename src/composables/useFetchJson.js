@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { fetchJson } from '@/utils/fetchJson';
+import { fetchJson } from '@/libs/fetchJson.js';
 
 /**
  * Composable to fetch JSON data with optional immediate execution.
