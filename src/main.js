@@ -2,6 +2,9 @@ import { createApp } from "vue";
 import "./style.css";
 import App from "./App.vue";
 import router from "./router";
+import { setDefaultBaseUrl } from "./libs/fetchJson";
+
+setDefaultBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 let theme = localStorage.getItem("theme");
 
