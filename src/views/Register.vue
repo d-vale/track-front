@@ -116,12 +116,15 @@ const handleRegister = async () => {
 
 <template>
   <div class="flex flex-col items-center gap-8 min-h-screen justify-center">
-    <h1 class="text-5xl font-normal leading-tight">TRACK</h1>
-    <h2 class="text-5xl leading-tight">Créer un compte</h2>
+    <img class="h-10" src="/logo.svg" alt="" />
+    <div class="flex flex-col items-center gap-2">
+      <h2 class="text-2xl font-medium leading-tight">Créer un compte</h2>
+      <p class="text-md leading-tight text-gray-400 font-light">Bienvenue sur tracks, veuillez créer votre compte</p>
+    </div>
 
     <form
       @submit.prevent="handleRegister()"
-      class="flex flex-col gap-4 w-full max-w-sm"
+      class="flex flex-col gap-4 w-full px-2 max-w-sm"
     >
       <div v-if="errorMessage" class="p-3 bg-red-900 border border-red-700 rounded-lg text-red-100 text-sm">
         {{ errorMessage }}
