@@ -1,30 +1,31 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useFetchJson } from "@/composables/useFetchJson";
 
 const router = useRouter();
 const email = ref("jpinard@bluewin.ch");
 const password = ref("password123");
 
+const { data, error, execute } = useFetchJson({
+  url: "/api/auth/login",
+  method: "POST",
+  immediate: false,
+});
+
 const handleLogin = async () => {
-  const options = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: email.value,
-      password: password.value,
-    }),
-  };
+  await execute({
+    email: email.value,
+    password: password.value,
+  });
 
-  let res = await fetch("/api/auth/login", options);
-  res = await res.json();
-
-
-  if (res.success) {
-    localStorage.setItem("token", res.data.token);
+  if (data.value?.success) {
+    localStorage.setItem("token", data.value.data.token);
     router.push("/tracking");
-  } else {
-    console.error(`ERROR : ${res.data.error.code} - MESSAGE : ${res.data.error.message} `);
+  } else if (error.value) {
+    console.error(`ERROR : ${error.value.status} - MESSAGE : ${error.value.statusText}`);
+  } else if (data.value) {
+    console.error(`ERROR : ${data.value.data.error.code} - MESSAGE : ${data.value.data.error.message}`);
   }
 };
 </script>
