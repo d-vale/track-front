@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useFetchJson } from "@/composables/useFetchJson";
+import { setDefaultHeaders } from "@/libs/fetchJson";
 
 const router = useRouter();
 const email = ref("jpinard@bluewin.ch");
@@ -20,7 +21,9 @@ const handleLogin = async () => {
   });
 
   if (data.value?.success) {
-    localStorage.setItem("token", data.value.data.token);
+    const token = data.value.data.token;
+    localStorage.setItem("token", token);
+    setDefaultHeaders({ Authorization: `Bearer ${token}` });
     router.push("/tracking");
   } else if (error.value) {
     console.error(`ERROR : ${error.value.status} - MESSAGE : ${error.value.statusText}`);
