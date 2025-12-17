@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useFetchJson } from "@/composables/useFetchJson";
 import { setDefaultHeaders } from "@/libs/fetchJson";
+import { connect } from "../../websocket.mjs";
 
 const router = useRouter();
 const email = ref("jpinard@bluewin.ch");
@@ -24,11 +25,16 @@ const handleLogin = async () => {
     const token = data.value.data.token;
     localStorage.setItem("token", token);
     setDefaultHeaders({ Authorization: `Bearer ${token}` });
+    connect(); // websocket connection
     router.push("/tracking");
   } else if (error.value) {
-    console.error(`ERROR : ${error.value.status} - MESSAGE : ${error.value.statusText}`);
+    console.error(
+      `ERROR : ${error.value.status} - MESSAGE : ${error.value.statusText}`
+    );
   } else if (data.value) {
-    console.error(`ERROR : ${data.value.data.error.code} - MESSAGE : ${data.value.data.error.message}`);
+    console.error(
+      `ERROR : ${data.value.data.error.code} - MESSAGE : ${data.value.data.error.message}`
+    );
   }
 };
 </script>
