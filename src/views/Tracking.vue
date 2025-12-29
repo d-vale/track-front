@@ -1,14 +1,14 @@
 <script setup>
-import { ref, computed, onUnmounted } from "vue";
+import { ref, computed, onUnmounted, onMounted, watch } from "vue";
 import { v4 } from "uuid";
-import { geolocationService } from "@/services/geolocationService.js";
 import { onDeviceStorageService } from "@/services/onDeviceStorageService.js";
 import { haversine } from "@/utils/haversine.mjs";
 import { calcPace } from "@/utils/paceCalculator.js";
 import { activityBuilderService } from "@/services/activityBuilderService.js";
 import { useFetchJson } from "@/composables/useFetchJson";
-import TheNavBar from "@/components/TheNavBar.vue";
-import TheHeader from "@/components/TheHeader.vue";
+
+import Map from "@/components/Map.vue";
+import { ChevronDown, Play, Pause } from "lucide-vue-next";
 
 const { data, error, execute } = useFetchJson({
   url: "/api/activities",
@@ -18,6 +18,7 @@ const { data, error, execute } = useFetchJson({
 
 const timeout = ref(null);
 const ACTIVTIY_ID = ref(null);
+const mapRef = ref(null);
 
 const isTracking = ref(false);
 const isPaused = ref(false);
@@ -29,6 +30,7 @@ const stopped_at = ref(0);
 const distance = ref(0);
 const lastPoint = ref(null);
 const currentPoint = ref(null);
+const pace = ref("00:00"); // min/km
 
 const lapDistance = ref(0);
 const lapNumber = ref(1);
@@ -113,17 +115,27 @@ const updateElevationGainLoss = () => {
 };
 
 const startTracking = async () => {
-  currentPoint.value = await geolocationService.getPos();
-  currentHeight.value = await onDeviceStorageService.addPoint(
-    currentPoint.value,
-    ACTIVTIY_ID.value
-  ); // si connexion, addPoint() retourne la hauteur du point ajouté, sinon null
-  updateDistance();
-  updateElevationGainLoss();
+  // Récupérer la position depuis Mapbox au lieu de geolocationService
+  const position = mapRef.value?.getCurrentPosition();
+
+  if (position) {
+    currentPoint.value = position;
+    currentHeight.value = await onDeviceStorageService.addPoint(
+      currentPoint.value,
+      ACTIVTIY_ID.value
+    ); // si connexion, addPoint() retourne la hauteur du point ajouté, sinon null
+    updateDistance();
+    updateElevationGainLoss();
+
+    lastPoint.value = currentPoint.value;
+    lastHeight.value = currentHeight.value;
+  } else {
+    console.warn(
+      "Position non disponible, en attente de la géolocalisation..."
+    );
+  }
 
   elapsedSeconds.value++;
-  lastPoint.value = currentPoint.value;
-  lastHeight.value = currentHeight.value;
 
   timeout.value = setTimeout(() => startTracking(), 1000);
 };
@@ -139,22 +151,23 @@ const togglePause = () => {
 
 const toggleTracking = async () => {
   if (!isTracking.value) {
+    isTracking.value = true;
     set();
     onDeviceStorageService.init(ACTIVTIY_ID.value, started_at.value);
     startTracking();
   } else {
+    isTracking.value = false;
     try {
       saveLap();
       onDeviceStorageService.finish(ACTIVTIY_ID.value, stopped_at.value);
       stopTracking();
-      await send();
+      await send(); // Pas de await - exécution en arrière-plan
     } catch (error) {
       console.error(error.message);
     } finally {
       reset();
     }
   }
-  isTracking.value = !isTracking.value;
 };
 const send = async () => {
   const activity = await activityBuilderService.create(
@@ -197,62 +210,124 @@ const set = () => {
 const reset = () => {
   ACTIVTIY_ID.value = null;
   elapsedSeconds.value = 0;
-  distance.value = null;
-  time.value = null;
+  distance.value = 0;
+  time.value = 0;
   lapNumber.value = 0;
 };
 
 onUnmounted(() => {
   stopTracking();
 });
+
+
+watch(elapsedSeconds, (newVal) => {
+  pace.value = calcPace(newVal, distance.value);
+});
 </script>
 
 <template>
-  <div class="flex flex-col w-full min-h-screen">
-    <TheHeader />
+  <div class="flex flex-col w-full justify-between min-h-screen">
+    <div class="flex-1 bg-gray-200 relative">
+      <Map ref="mapRef"></Map>
+      <div class="absolute top-0 left-0 m-5">
+        <router-link to="/home" class="chevron-button">
+          <ChevronDown size="24" color="white" />
+        </router-link>
+      </div>
 
-    <div class="flex flex-col items-center gap-8 flex-1 pt-8">
-      <h1 class="text-5xl font-normal leading-tight">Tracking</h1>
+      <div class="absolute bottom-0 left-0 right-0 mx-5 mb-5">
+        <!-- Container rectangulaire toujours visible -->
+        <div class="tracking-container">
+          <!-- Métriques -->
+          <div class="flex justify-around p-4 gap-3">
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="text-white font-bold text-base text-shadow-lg">{{ formattedTime }}</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="text-white font-bold text-base text-shadow-lg">{{ formattedDistance }}</span>
+              <span class="text-white/80 text-xs text-shadow-lg">km</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="text-white font-bold text-base text-shadow-lg">{{ pace }}</span>
+              <span class="text-white/80 text-xs text-shadow-lg">min/km</span>
+            </div>
+          </div>
 
-      <div class="flex flex-col gap-4 w-full max-w-sm">
-        <div class="flex flex-col gap-2 p-4 rounded-lg border border-gray-600">
-          <span class="text-sm text-gray-400">Chronomètre</span>
-          <span class="text-3xl font-semibold">{{ formattedTime }}</span>
-        </div>
+          <!-- Boutons: Start / Pause / Resume+Finish -->
+          <div class="flex w-full">
+            <!-- État non actif: bouton Start pleine largeur -->
+            <button
+              v-if="!isTracking"
+              class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white w-full bg-(--orange) opacity-85"
+              @click="toggleTracking"
+            >
+              <Play :size="20" />
+              <span>Start</span>
+            </button>
 
-        <div class="flex flex-col gap-2 p-4 rounded-lg border border-gray-600">
-          <span class="text-sm text-gray-400">Distance</span>
-          <span class="text-3xl font-semibold">{{ formattedDistance }} km</span>
-        </div>
+            <!-- État actif non pausé: bouton Pause pleine largeur -->
+            <button
+              v-else-if="isTracking && !isPaused"
+              class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white w-full bg-white/20"
+              @click="togglePause"
+            >
+              <Pause :size="20" />
+              <span>Pause</span>
+            </button>
 
-        <div class="flex gap-2">
-          <button
-            v-if="isTracking"
-            @click="togglePause()"
-            class="flex-1 rounded-lg border border-transparent px-5 py-2.5 text-base font-medium cursor-pointer transition-colors"
-            :class="
-              isPaused
-                ? 'bg-green-600 hover:border-green-400'
-                : 'bg-yellow-600 hover:border-yellow-400'
-            "
-          >
-            {{ isPaused ? "Reprendre" : "Pause" }}
-          </button>
-          <button
-            @click="toggleTracking()"
-            class="rounded-lg border border-transparent px-5 py-2.5 text-base font-medium bg-[#1a1a1a] cursor-pointer transition-colors hover:border-[#646cff]"
-            :class="{
-              'flex-1 bg-red-600 hover:border-red-400': isTracking,
-              'w-full': !isTracking,
-            }"
-          >
-            {{ isTracking ? "Stop tracking" : "Start tracking" }}
-          </button>
+            <!-- État actif en pause: boutons Finish et Resume -->
+            <template v-else-if="isTracking && isPaused">
+              <button
+                class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white bg-(--orange) opacity-85 border-r-[0.5px] border-white/20"
+                @click="toggleTracking"
+              >
+                <span>Finish</span>
+              </button>
+              <button
+                class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white bg-white/20"
+                @click="togglePause"
+              >
+                <Play :size="20" />
+                <span>Resume</span>
+              </button>
+            </template>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <TheNavBar />
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Glassmorphism pour le bouton chevron */
+.chevron-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+
+/* Container rectangulaire avec glassmorphism */
+.tracking-container {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  width: 100%;
+}
+</style>
