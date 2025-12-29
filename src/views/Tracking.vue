@@ -21,6 +21,7 @@ const ACTIVTIY_ID = ref(null);
 const mapRef = ref(null);
 
 const isTracking = ref(false);
+const isDarkTheme = computed(() => mapRef.value?.mapStyle === 'night');
 const isPaused = ref(false);
 const time = ref(null);
 const elapsedSeconds = ref(0);
@@ -120,6 +121,10 @@ const startTracking = async () => {
 
   if (position) {
     currentPoint.value = position;
+
+    // Ajouter le point à la trace sur la carte
+    mapRef.value?.addPointToTrace(position);
+
     currentHeight.value = await onDeviceStorageService.addPoint(
       currentPoint.value,
       ACTIVTIY_ID.value
@@ -161,7 +166,7 @@ const toggleTracking = async () => {
       saveLap();
       onDeviceStorageService.finish(ACTIVTIY_ID.value, stopped_at.value);
       stopTracking();
-      await send(); // Pas de await - exécution en arrière-plan
+      await send();
     } catch (error) {
       console.error(error.message);
     } finally {
@@ -213,12 +218,12 @@ const reset = () => {
   distance.value = 0;
   time.value = 0;
   lapNumber.value = 0;
+  mapRef.value.clearTrace();
 };
 
 onUnmounted(() => {
   stopTracking();
 });
-
 
 watch(elapsedSeconds, (newVal) => {
   pace.value = calcPace(newVal, distance.value);
@@ -228,10 +233,10 @@ watch(elapsedSeconds, (newVal) => {
 <template>
   <div class="flex flex-col w-full justify-between min-h-screen">
     <div class="flex-1 bg-gray-200 relative">
-      <Map ref="mapRef"></Map>
+      <Map ref="mapRef" :is-tracking="isTracking"></Map>
       <div class="absolute top-0 left-0 m-5">
         <router-link to="/home" class="chevron-button">
-          <ChevronDown size="24" color="white" />
+          <ChevronDown size="24" :color="isDarkTheme ? 'white' : '#1f2937'" />
         </router-link>
       </div>
 
@@ -241,15 +246,15 @@ watch(elapsedSeconds, (newVal) => {
           <!-- Métriques -->
           <div class="flex justify-around p-4 gap-3">
             <div class="flex flex-col items-center gap-0.5">
-              <span class="text-white font-bold text-base text-shadow-lg">{{ formattedTime }}</span>
+              <span :class="isDarkTheme ? 'text-white' : 'text-gray-900'" class="font-bold text-base text-shadow-lg">{{ formattedTime }}</span>
             </div>
             <div class="flex flex-col items-center gap-0.5">
-              <span class="text-white font-bold text-base text-shadow-lg">{{ formattedDistance }}</span>
-              <span class="text-white/80 text-xs text-shadow-lg">km</span>
+              <span :class="isDarkTheme ? 'text-white' : 'text-gray-900'" class="font-bold text-base text-shadow-lg">{{ formattedDistance }}</span>
+              <span :class="isDarkTheme ? 'text-white/80' : 'text-gray-700'" class="text-xs text-shadow-lg">km</span>
             </div>
             <div class="flex flex-col items-center gap-0.5">
-              <span class="text-white font-bold text-base text-shadow-lg">{{ pace }}</span>
-              <span class="text-white/80 text-xs text-shadow-lg">min/km</span>
+              <span :class="isDarkTheme ? 'text-white' : 'text-gray-900'" class="font-bold text-base text-shadow-lg">{{ pace }}</span>
+              <span :class="isDarkTheme ? 'text-white/80' : 'text-gray-700'" class="text-xs text-shadow-lg">min/km</span>
             </div>
           </div>
 
@@ -258,7 +263,8 @@ watch(elapsedSeconds, (newVal) => {
             <!-- État non actif: bouton Start pleine largeur -->
             <button
               v-if="!isTracking"
-              class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white w-full bg-(--orange) opacity-85"
+              :class="isDarkTheme ? 'text-white' : 'text-gray-900'"
+              class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 w-full bg-(--orange) opacity-85"
               @click="toggleTracking"
             >
               <Play :size="20" />
@@ -268,7 +274,8 @@ watch(elapsedSeconds, (newVal) => {
             <!-- État actif non pausé: bouton Pause pleine largeur -->
             <button
               v-else-if="isTracking && !isPaused"
-              class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white w-full bg-white/20"
+              :class="isDarkTheme ? 'text-white' : 'text-gray-900'"
+              class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 w-full bg-white/20"
               @click="togglePause"
             >
               <Pause :size="20" />
@@ -278,13 +285,15 @@ watch(elapsedSeconds, (newVal) => {
             <!-- État actif en pause: boutons Finish et Resume -->
             <template v-else-if="isTracking && isPaused">
               <button
-                class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white bg-(--orange) opacity-85 border-r-[0.5px] border-white/20"
+                :class="isDarkTheme ? 'text-white' : 'text-gray-900'"
+                class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 bg-(--orange) opacity-85 border-r-[0.5px] border-white/20"
                 @click="toggleTracking"
               >
                 <span>Finish</span>
               </button>
               <button
-                class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 text-white bg-white/20"
+                :class="isDarkTheme ? 'text-white' : 'text-gray-900'"
+                class="flex-1 p-3.5 border-0 cursor-pointer font-semibold text-sm flex items-center justify-center gap-1.5 bg-white/20"
                 @click="togglePause"
               >
                 <Play :size="20" />
