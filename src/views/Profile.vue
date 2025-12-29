@@ -56,34 +56,38 @@ const stopCamera = () => {
 </script>
 
 <template>
-  <TheHeader />
+  <div class="flex flex-col h-screen">
+    <TheHeader class="shrink-0" />
 
-  <div class="profile-container">
-    <div class="photo-section">
-      <div v-if="photo && !showCamera" class="photo-preview">
-        <img :src="photo" alt="Photo de profil" />
-      </div>
+    <main class="flex-1 overflow-y-auto">
+      <div class="profile-container">
+        <div class="photo-section">
+          <div v-if="photo && !showCamera" class="photo-preview">
+            <img :src="photo" alt="Photo de profil" />
+          </div>
 
-      <div v-if="showCamera" class="camera-container">
-        <video id="camera-video" autoplay playsinline></video>
-        <canvas id="camera-canvas" style="display: none;"></canvas>
-        <div class="camera-controls">
-          <button @click="capturePhoto" class="capture-button">
-            📸 Capturer
-          </button>
-          <button @click="stopCamera" class="cancel-button">
-            ❌ Annuler
+          <div v-if="showCamera" class="camera-container">
+            <video id="camera-video" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            <div class="camera-controls">
+              <button @click="capturePhoto" class="capture-button">
+                📸 Capturer
+              </button>
+              <button @click="stopCamera" class="cancel-button">
+                ❌ Annuler
+              </button>
+            </div>
+          </div>
+
+          <button v-if="!showCamera" @click="takePhoto" class="photo-button">
+            📷 Prendre une photo
           </button>
         </div>
       </div>
+    </main>
 
-      <button v-if="!showCamera" @click="takePhoto" class="photo-button">
-        📷 Prendre une photo
-      </button>
-    </div>
+    <TheNavBar class="shrink-0" />
   </div>
-
-  <TheNavBar />
 </template>
 
 <style scoped>

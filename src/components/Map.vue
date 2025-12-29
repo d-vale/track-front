@@ -17,7 +17,7 @@ const mapInstance = ref(null);
 const geolocateControlRef = ref(null);
 const currentPosition = ref(null);
 const geolocateState = ref("ACTIVE_LOCK"); // "OFF", "BACKGROUND", "ACTIVE_LOCK"
-const mapStyle = ref("day"); // "day", "night", "topo"
+const mapStyle = ref("night"); // "day", "night", "topo"
 const showMapStyleModal = ref(false);
 const trackingCoordinates = ref([]); // Coordonnées pour la trace
 

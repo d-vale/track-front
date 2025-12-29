@@ -218,6 +218,7 @@ const reset = () => {
   distance.value = 0;
   time.value = 0;
   lapNumber.value = 0;
+  isPaused.value = false;
   mapRef.value.clearTrace();
 };
 
