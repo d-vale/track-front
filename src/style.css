@@ -30,9 +30,4 @@ body {
   background-color: var(--base);
   font-family: var(--font-family);
   color: var(--noir);
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-
-#app {
-  min-height: 100vh;
 }
