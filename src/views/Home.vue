@@ -9,7 +9,6 @@ import CommunityWidget from "../components/CommunityWidget.vue";
 
 const activities = ref([]);
 
-
 const fetchActivities = async () => {
   const { data, error, execute } = useFetchJson({
     url: "/api/activities",
@@ -37,7 +36,7 @@ onMounted(() => {
     <TheHeader class="shrink-0" />
     <main class="flex-1 overflow-y-auto">
       <WeekPreview :activities="activities" />
-        <CommunityWidget/>
+      <CommunityWidget />
       <ActivityPreview :activities="activities" />
     </main>
     <TheNavBar class="shrink-0" />

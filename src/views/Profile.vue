@@ -14,7 +14,20 @@ const selectedWeekLabel = ref("Cette semaine");
 const weeksData = ref([]);
 
 const getMonthLabel = (monthNumber) => {
-  const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+  const months = [
+    "Jan",
+    "Fév",
+    "Mar",
+    "Avr",
+    "Mai",
+    "Juin",
+    "Juil",
+    "Août",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Déc",
+  ];
   return months[monthNumber - 1];
 };
 
@@ -26,11 +39,13 @@ const formatDuration = (milliseconds) => {
 };
 
 const getWeekNumber = (date) => {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const d = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  );
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 };
 
 const generateLast12Weeks = () => {
@@ -42,7 +57,7 @@ const generateLast12Weeks = () => {
     const weekStart = new Date(today);
     // Calculer le lundi de la semaine (i semaines en arrière)
     const daysToMonday = today.getDay() === 0 ? 6 : today.getDay() - 1; // Si dimanche (0), reculer de 6 jours, sinon reculer jusqu'au lundi
-    weekStart.setDate(today.getDate() - daysToMonday - (i * 7));
+    weekStart.setDate(today.getDate() - daysToMonday - i * 7);
 
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6); // Dimanche de la semaine
@@ -58,8 +73,8 @@ const generateLast12Weeks = () => {
       distance: 0,
       duration: formatDuration(0),
       elevation: 0,
-      startDate: weekStart.toISOString().split('T')[0],
-      endDate: weekEnd.toISOString().split('T')[0]
+      startDate: weekStart.toISOString().split("T")[0],
+      endDate: weekEnd.toISOString().split("T")[0],
     });
   }
 
@@ -81,10 +96,10 @@ const fetchWeeklyData = async () => {
     console.log("Weekly data fetched successfully : ", data.value);
 
     // Remplir les données de l'API dans les semaines correspondantes
-    data.value.data.forEach(item => {
+    data.value.data.forEach((item) => {
       // Trouver l'index de la semaine correspondante dans weeksData en comparant year et week
-      const weekIndex = weeksData.value.findIndex(w =>
-        w.year === item.year && w.week === item.week
+      const weekIndex = weeksData.value.findIndex(
+        (w) => w.year === item.year && w.week === item.week
       );
 
       if (weekIndex !== -1) {
@@ -97,11 +112,10 @@ const fetchWeeklyData = async () => {
           ...weeksData.value[weekIndex],
           distance: Math.round(totalKm * 10) / 10,
           duration: formatDuration(totalTime),
-          elevation: Math.round(totalElevation)
+          elevation: Math.round(totalElevation),
         };
       }
     });
-
   } else {
     console.error("Error fetching weekly data:", error.value);
   }
@@ -161,18 +175,18 @@ onMounted(() => {
           <h1 class="text-xl font-semibold">
             {{ user?.firstname }} {{ user?.lastname }}
           </h1>
-          <p>Vevey, Switzerland</p>
+          <p class="text-secondary">Vevey, Switzerland</p>
         </div>
 
         <div class="flex flex-row gap-4 ml-auto">
           <div
-            class="icon-button"
+            class="rounded-full border border-separation p-2 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <Pencil :size="20" />
           </div>
 
           <div
-            class="icon-button"
+            class="rounded-full border border-separation p-2 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <Settings :size="20" />
           </div>
@@ -180,7 +194,7 @@ onMounted(() => {
       </div>
 
       <div>
-        <p class="text-2xl font-semibold mb-4">Galerie</p>
+        <p class="text-xl font-semibold mb-4">Galerie</p>
         <div
           v-if="user?.medias && user.medias.length > 0"
           class="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2"
@@ -199,29 +213,29 @@ onMounted(() => {
             />
           </div>
         </div>
-        <p class="base(--secondary)">Aucune photo disponible.</p>
+        <p v-else class="text-secondary">Aucune photo disponible.</p>
       </div>
 
       <div class="flex flex-col gap-2">
-        <p class="text-2xl font-semibold">
+        <p class="text-xl font-semibold">
           {{ selectedWeekLabel }}
         </p>
         <div class="flex gap-8 mb-4">
           <div>
-            <p class="base(--secondary)">Distance</p>
-            <p class="text-xl font-semibold">
+            <p class="text-secondary">Distance</p>
+            <p class="text-md font-semibold">
               {{ selectedWeek ? selectedWeek.distance : "0" }} km
             </p>
           </div>
           <div>
-            <p class="base(--secondary)">Durée</p>
-            <p class="text-xl font-semibold">
+            <p class="text-secondary">Durée</p>
+            <p class="text-md font-semibold">
               {{ selectedWeek ? selectedWeek.duration : "0h 0m" }}
             </p>
           </div>
           <div>
-            <p class="base(--secondary)">Élévation</p>
-            <p class="text-xl font-semibold">
+            <p class="text-secondary">Élévation</p>
+            <p class="text-md font-semibold">
               {{ selectedWeek ? selectedWeek.elevation : "0" }} m
             </p>
           </div>
@@ -248,6 +262,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
