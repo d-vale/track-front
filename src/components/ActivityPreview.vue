@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useFetchJson } from '../composables/useFetchJson.js'
+import polyline from '@mapbox/polyline'
 
 // Déclaration du fetch pour récupérer toutes les activités
 const { data, error, execute } = useFetchJson({
@@ -13,10 +14,12 @@ const { data, error, execute } = useFetchJson({
 const activities = ref([])
 const loading = ref(true)
 
+const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1Ijoiay1zZWwiLCJhIjoiY21qcXlycDJ3M3hlcjNlcXhyMThlZWZydCJ9.uDpE5Dw1is7vJOmVzVXHGQ'
+
 // Surveiller les changements de data et error
 watch([data, error], async () => {
   loading.value = false
-  
+
   if (error.value) {
     console.error('Erreur API:', error.value)
     return
@@ -24,16 +27,16 @@ watch([data, error], async () => {
 
   if (data.value) {
     console.log('API Response:', data.value)
-    
+
     // Récupérer et trier les activités de la plus récente à la plus ancienne
     let activitiesArray = []
-    
+
     if (Array.isArray(data.value)) {
       activitiesArray = data.value
     } else if (data.value.data && Array.isArray(data.value.data)) {
       activitiesArray = data.value.data
     }
-    
+
     if (activitiesArray.length > 0) {
       activities.value = activitiesArray.sort((a, b) => {
         return new Date(b.date) - new Date(a.date)
@@ -41,6 +44,56 @@ watch([data, error], async () => {
     }
   }
 })
+
+// Générer l'URL de l'image statique Mapbox pour un polyline
+const getStaticMapUrl = (encodedPolyline) => {
+  if (!encodedPolyline) return null
+
+  try {
+    // Décoder le polyline pour obtenir les coordonnées
+    const coordinates = polyline.decode(encodedPolyline)
+
+    // Calculer les bounds
+    let minLat = coordinates[0][0], maxLat = coordinates[0][0]
+    let minLng = coordinates[0][1], maxLng = coordinates[0][1]
+
+    coordinates.forEach(([lat, lng]) => {
+      if (lat < minLat) minLat = lat
+      if (lat > maxLat) maxLat = lat
+      if (lng < minLng) minLng = lng
+      if (lng > maxLng) maxLng = lng
+    })
+
+    // Calculer le centre
+    const centerLat = (minLat + maxLat) / 2
+    const centerLng = (minLng + maxLng) / 2
+
+    // Calculer le zoom approprié basé sur les bounds
+    const latDiff = maxLat - minLat
+    const lngDiff = maxLng - minLng
+    const maxDiff = Math.max(latDiff, lngDiff)
+
+    let zoom = 13
+    if (maxDiff > 0.1) zoom = 11
+    if (maxDiff > 0.2) zoom = 10
+    if (maxDiff > 0.5) zoom = 9
+    if (maxDiff < 0.05) zoom = 14
+    if (maxDiff < 0.01) zoom = 15
+
+    // Construire le path encodé pour l'overlay
+    const pathEncoded = encodeURIComponent(`path-3+FF8C00-0.9(${encodedPolyline})`)
+
+    // URL de l'API Static Images de Mapbox
+    const width = 800
+    const height = 600
+    const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pathEncoded}/auto/${width}x${height}@2x?access_token=${MAPBOX_ACCESS_TOKEN}&attribution=false&logo=false`
+
+    return url
+  } catch (err) {
+    console.error('Erreur lors de la génération de l\'URL de la carte:', err)
+    return null
+  }
+}
 
 // Formater la date et l'heure
 const formatDateTime = (isoDate) => {
@@ -76,7 +129,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full my-12">
     <!-- État de chargement -->
     <div v-if="loading" class="text-center py-8">
       <p class="text-sm font-medium">Chargement des activités...</p>
@@ -133,7 +186,13 @@ onMounted(async () => {
           </div>
         </div>
         <!-- apercu carte -->
-        <img class="self-stretch h-96" src="https://placehold.co/402x366" />
+        <img
+          v-if="activity.encodedPolyline"
+          :src="getStaticMapUrl(activity.encodedPolyline)"
+          :alt="`Carte de l'activité ${activity.activityType}`"
+          class="self-stretch h-96 object-cover"
+        />
+        <img v-else class="self-stretch h-96" src="https://placehold.co/402x366" />
       </div>
     </div>
 

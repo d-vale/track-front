@@ -1,5 +1,5 @@
 import { CLOUDINARY_CONFIG } from '../../config/cloudinary.mjs';
-import { getAuthHeaders } from './authHelper.js';
+import { fetchJson } from '@/libs/fetchJson.js';
 
 /**
  * Upload une image vers Cloudinary (fonction interne)
@@ -52,22 +52,12 @@ async function uploadToCloudinary(file, options = {}) {
  * @returns {Promise<Object>} Réponse du serveur
  */
 async function addMediaToActivity(activityId, mediaUrl) {
-  try {
-    const response = await fetch(`/api/activities/${activityId}/medias`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ mediaUrl }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erreur ajout média: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout du média:', error);
-    throw error;
-  }
+  const { request } = fetchJson({
+    url: `/api/activities/${activityId}/medias`,
+    method: 'POST',
+    data: { mediaUrl },
+  });
+  return request;
 }
 
 /**
@@ -76,20 +66,11 @@ async function addMediaToActivity(activityId, mediaUrl) {
  * @returns {Promise<Array>} Liste des médias
  */
 export async function getActivityMedias(activityId) {
-  try {
-    const response = await fetch(`/api/activities/${activityId}/medias`, {
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erreur récupération médias: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Erreur lors de la récupération des médias:', error);
-    throw error;
-  }
+  const { request } = fetchJson({
+    url: `/api/activities/${activityId}/medias`,
+    method: 'GET',
+  });
+  return request;
 }
 
 /**
@@ -98,20 +79,11 @@ export async function getActivityMedias(activityId) {
  * @returns {Promise<Array>} Liste des médias
  */
 export async function getUserMedias(userId) {
-  try {
-    const response = await fetch(`/api/activities/medias/user/${userId}`, {
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erreur récupération médias utilisateur: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Erreur lors de la récupération des médias utilisateur:', error);
-    throw error;
-  }
+  const { request } = fetchJson({
+    url: `/api/activities/medias/user/${userId}`,
+    method: 'GET',
+  });
+  return request;
 }
 
 /**
@@ -121,22 +93,12 @@ export async function getUserMedias(userId) {
  * @returns {Promise<Object>} Réponse du serveur
  */
 export async function deleteMediaFromActivity(activityId, mediaUrl) {
-  try {
-    const response = await fetch(`/api/activities/${activityId}/medias`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ mediaUrl }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Erreur suppression média: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Erreur lors de la suppression du média:', error);
-    throw error;
-  }
+  const { request } = fetchJson({
+    url: `/api/activities/${activityId}/medias`,
+    method: 'DELETE',
+    data: { mediaUrl },
+  });
+  return request;
 }
 
 /**

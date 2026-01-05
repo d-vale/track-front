@@ -4,11 +4,15 @@ import { useRouter } from "vue-router";
 import { Sun, Moon, Settings } from 'lucide-vue-next';
 
 const router = useRouter();
-const theme = ref(document.querySelector("body").classList.contains("dark") ? "dark" : "light");
+const theme = ref(
+  document.querySelector("body").classList.contains("dark") ? "dark" : "light"
+);
 
 const toggleTheme = () => {
   document.querySelector("body").classList.toggle("dark");
-  theme.value = document.querySelector("body").classList.contains("dark") ? "dark" : "light";
+  theme.value = document.querySelector("body").classList.contains("dark")
+    ? "dark"
+    : "light";
   localStorage.setItem("theme", theme.value);
 };
 
@@ -40,7 +44,10 @@ const handleLogout = () => {
         <Settings size="20"/>
       </button>
 
-      <button @click="handleLogout()" class="text-sm px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-colors">
+      <button
+        @click="handleLogout()"
+        class="text-sm px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"
+      >
         Logout
       </button>
     </div>
