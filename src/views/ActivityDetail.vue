@@ -3,12 +3,15 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import TheHeader from "@/components/TheHeader.vue";
 import ActivityDetailNav from "@/components/ActivityDetailNav.vue";
+import ToastNotification from "@/components/ToastNotification.vue";
 import { useFetchJson } from "../composables/useFetchJson.js";
 import { getAuthHeaders } from "@/helpers/authHelper.js";
+import { useToast } from "@/composables/useToast.js";
 import polyline from "@mapbox/polyline";
 
 const route = useRoute();
 const router = useRouter();
+const { addToast } = useToast();
 
 // ID de l'activité depuis les paramètres de l'URL
 const activityId = route.params.id;
@@ -140,11 +143,13 @@ const deleteActivity = async () => {
     });
 
     if (response.ok) {
-      router.push("/home"); // Retour à la page d'accueil après suppression
+      router.push({ path: "/home", query: { deleted: "true" } });
+    } else {
+      addToast("Erreur lors de la suppression de l'activité", "error");
     }
   } catch (err) {
     console.error("Erreur lors de la suppression:", err);
-    alert("Erreur lors de la suppression de l'activité");
+    addToast("Erreur lors de la suppression de l'activité", "error");
   }
 };
 </script>
@@ -152,6 +157,7 @@ const deleteActivity = async () => {
 <template>
   <div class="min-h-screen flex flex-col">
     <TheHeader />
+    <ToastNotification />
 
     <!-- État de chargement -->
     <div v-if="loading" class="flex-1 flex items-center justify-center">
