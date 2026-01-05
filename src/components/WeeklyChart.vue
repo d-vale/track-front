@@ -44,17 +44,19 @@ const COLORS = {
   gradientStartOpacity: 0.5, // Opacité de départ du gradient
   gradientEndOpacity: 0.1, // Opacité de fin du gradient
   gridLines: "#e5e7eb", // Couleur des lignes de grille
-  axisLabels: "gray-500", // Classe Tailwind pour les labels d'axe
-  monthLabels: "gray-600", // Classe Tailwind pour les labels de mois
+  axisLabels: "var(--secondary)", // Couleur gris clair pour les labels d'axe
+  monthLabels: "var(--secondary)", // Couleur gris clair pour les labels de mois
   pointFill: "var(--base)", // Couleur de remplissage des points (utilise la couleur de fond de la page)
   pointStroke: "#ea580c", // Couleur du contour des points
   pointStrokeSelected: "#ea580c", // Couleur du contour des points sélectionnés
 };
 
 // Calcul des valeurs pour l'axe Y
-const maxDistance = computed(() =>
-  Math.max(...props.data.map((d) => d.distance))
-);
+const maxDistance = computed(() => {
+  if (!props.data || props.data.length === 0) return 0;
+  const max = Math.max(...props.data.map((d) => d.distance || 0));
+  return max;
+});
 const midDistance = computed(() => Math.round(maxDistance.value / 2));
 
 // Dimensions du graphique
@@ -66,6 +68,10 @@ const chartHeight = height - padding.top - padding.bottom;
 
 // Fonction pour convertir une distance en position Y
 const getY = (distance) => {
+  if (maxDistance.value === 0) {
+    // Si pas de données, tout est en bas
+    return padding.top + chartHeight;
+  }
   const ratio = distance / maxDistance.value;
   return padding.top + chartHeight - ratio * chartHeight;
 };
@@ -78,6 +84,8 @@ const getX = (index) => {
 
 // Génération du path SVG pour la ligne
 const linePath = computed(() => {
+  if (!props.data || props.data.length === 0) return "";
+
   return props.data
     .map((d, i) => {
       const x = getX(i);
@@ -89,6 +97,8 @@ const linePath = computed(() => {
 
 // Génération du path pour la zone avec gradient (area)
 const areaPath = computed(() => {
+  if (!props.data || props.data.length === 0) return "";
+
   const linePoints = props.data
     .map((d, i) => {
       const x = getX(i);
@@ -112,10 +122,7 @@ const points = computed(() => {
     y: getY(d.distance),
     distance: d.distance,
     index: i,
-    isFirst: i === 0,
-    isLast: i === props.data.length - 1,
     month: d.month,
-    week: d.week,
     startDate: d.startDate,
     endDate: d.endDate,
   }));
@@ -165,21 +172,21 @@ const formatWeekLabel = (startDate, endDate) => {
   return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`;
 };
 
-// Labels des mois (afficher seulement quand le mois change)
+// Labels des mois (afficher seulement quand le mois change, sauf le premier)
 const monthLabels = computed(() => {
   const labels = [];
   let lastMonth = null;
 
   props.data.forEach((d, i) => {
-    if (d.month !== lastMonth) {
+    // Ignorer le premier mois pour éviter l'overflow à gauche
+    if (d.month !== lastMonth && i > 0) {
       const x = getX(i);
-      // Limiter la position X pour éviter l'overflow à gauche
-      // Approximativement la moitié de la largeur du texte (environ 20px)
-      const minX = padding.left + 20;
       labels.push({
         month: d.month,
-        x: Math.max(x, minX),
+        x: x,
       });
+      lastMonth = d.month;
+    } else if (i === 0) {
       lastMonth = d.month;
     }
   });
@@ -325,7 +332,8 @@ const handleTouchEnd = () => {
         :x="width - padding.right + 10"
         :y="padding.top + chartHeight + 5"
         text-anchor="start"
-        :class="`text-xs fill-${COLORS.axisLabels}`"
+        class="text-xs"
+        :fill="COLORS.axisLabels"
       >
         0 km
       </text>
@@ -333,7 +341,8 @@ const handleTouchEnd = () => {
         :x="width - padding.right + 10"
         :y="padding.top + chartHeight / 2 + 5"
         text-anchor="start"
-        :class="`text-xs fill-${COLORS.axisLabels}`"
+        class="text-xs"
+        :fill="COLORS.axisLabels"
       >
         {{ midDistance }} km
       </text>
@@ -341,7 +350,8 @@ const handleTouchEnd = () => {
         :x="width - padding.right + 10"
         :y="padding.top + 5"
         text-anchor="start"
-        :class="`text-xs fill-${COLORS.axisLabels}`"
+        class="text-xs"
+        :fill="COLORS.axisLabels"
       >
         {{ maxDistance }} km
       </text>
@@ -399,7 +409,8 @@ const handleTouchEnd = () => {
           :x="label.x"
           :y="height - 10"
           text-anchor="middle"
-          :class="`text-sm fill-${COLORS.monthLabels} font-medium`"
+          class="text-sm font-medium"
+          :fill="COLORS.monthLabels"
         >
           {{ label.month }}
         </text>

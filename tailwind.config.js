@@ -7,7 +7,7 @@ export default {
         noir: 'var(--noir)',
         orange: 'var(--orange)',
         base: 'var(--base)',
-        'gris-clair': 'var(--gris-clair)',
+        'gris-clair': 'var(--secondary)',
         'gris-fonce': 'var(--gris-fonce)',
         'separation-grise': 'var(--separation-grise)',
       },

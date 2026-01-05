@@ -27,7 +27,6 @@ const fetchActivities = async () => {
 };
 
 onMounted(() => {
-  fetchUser();
   fetchActivities();
 });
 </script>

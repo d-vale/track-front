@@ -50,7 +50,7 @@ const weekDays = computed(() => {
   });
 });
 </script>
-  
+
 <template>
   <div class="w-full p-2.5 inline-flex flex-col justify-start items-start gap-2.5">
     <div class="py-2.5 flex justify-start items-center gap-2.5">
@@ -94,7 +94,7 @@ const weekDays = computed(() => {
         <!-- Jour futur sans activité -->
         <div
           v-else-if="dayData.isFuture"
-          class="w-7 h-7 p-0.5 rounded-3xl outline-1 -outline-offset-1 outline-(--gris-clair) flex justify-center items-center"
+          class="w-7 h-7 p-0.5 rounded-3xl outline-1 -outline-offset-1 outline-(--secondary) flex justify-center items-center"
         >
           <span class="text-noir text-xs font-semibold">{{ dayData.dayNumber }}</span>
         </div>
@@ -102,7 +102,7 @@ const weekDays = computed(() => {
         <!-- Jour passé sans activité -->
         <div
           v-else
-          class="w-7 h-7 p-0.5 bg-(--gris-clair) rounded-3xl flex justify-center items-center"
+          class="w-7 h-7 p-0.5 bg-(--secondary) rounded-3xl flex justify-center items-center"
         >
           <span class="text-noir text-xs font-semibold">{{ dayData.dayNumber }}</span>
         </div>

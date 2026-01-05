@@ -4,8 +4,7 @@
   --orange: #FF3D00;
   --base: #FFFFFF;
   --noir: #0A0908;
-  --gris-clair: #E1E1E1;
-  --gris-fonce: #5C5C5C;
+  --secondary: #5C5C5C;
   --contour-jour-calendrier: #0A0908;
   --contour-jour-calendrier-opacity: rgba(10, 9, 8, 0.35);
   --separation-grise: #666666;
@@ -17,8 +16,7 @@
   --orange: #FF3D00;
   --base: #0A0908;
   --noir: #FFFFFF;
-  --gris-clair: #5C5C5C;
-  --gris-fonce: #E1E1E1;
+  --secondary: #5C5C5C;
   --contour-jour-calendrier: #FFFFFF;
   --contour-jour-calendrier-opacity: rgba(255, 255, 255, 0.35);
   --separation-grise: #666666;
