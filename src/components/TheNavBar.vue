@@ -24,7 +24,7 @@ const getStrokeColor = (path) => {
 </script>
 
 <template>
-  <div class="w-full bg-(--base) px-4 py-3 shadow-lg">
+  <div class="w-full bg-(--base) px-4 py-3 shadow-lg fixed bottom-0 left-0 right-0 z-50">
     <div class="flex justify-around items-center w-full">
       <!-- Accueil -->
       <button @click="navigate('/home')" class="flex flex-col justify-center items-center hover:opacity-80 transition-opacity cursor-pointer">

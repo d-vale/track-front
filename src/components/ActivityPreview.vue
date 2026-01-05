@@ -133,7 +133,7 @@ const formatDuration = (milliseconds) => {
       <div
         v-for="activity in activities"
         :key="activity._id"
-        class="w-full pt-2.5 border-t border-separation inline-flex flex-col justify-start items-start"
+        class="w-full pt-2.5 border-t border-(--gris-clair) inline-flex flex-col justify-start items-start"
       >
         <div class="self-stretch px-6 inline-flex justify-between items-center">
           <div

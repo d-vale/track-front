@@ -5,6 +5,7 @@ import TheHeader from "@/components/TheHeader.vue";
 import WeekPreview from "../components/WeekPreview.vue";
 import { onMounted, ref } from "vue";
 import { useFetchJson } from "../composables/useFetchJson";
+import CommunityWidget from "../components/CommunityWidget.vue";
 
 const activities = ref([]);
 
@@ -36,6 +37,7 @@ onMounted(() => {
     <TheHeader class="shrink-0" />
     <main class="flex-1 overflow-y-auto">
       <WeekPreview :activities="activities" />
+        <CommunityWidget/>
       <ActivityPreview :activities="activities" />
     </main>
     <TheNavBar class="shrink-0" />
