@@ -43,9 +43,10 @@ const routes = [
     component: ActivitiesHistory
   },
   {
-    path: '/activity:id',
+    path: '/activity/:id',
     name: 'ActivityDetail',
-    component: ActivityDetail
+    component: ActivityDetail,
+    props: true
   }
 ];
 
