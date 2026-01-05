@@ -1,185 +1,167 @@
 <script setup>
-import { ref } from 'vue';
-import TheNavBar from "@/components/TheNavBar.vue";
-import TheHeader from "@/components/TheHeader.vue";
+import { onMounted, ref } from "vue";
+import { useFetchJson } from "../composables/useFetchJson";
+import { Pencil } from "lucide-vue-next";
+import { Settings } from "lucide-vue-next";
+import WeeklyChart from "../components/WeeklyChart.vue";
 
-const photo = ref(null);
-const videoStream = ref(null);
-const showCamera = ref(false);
+const user = ref(null);
+const selectedWeek = ref(null);
+const selectedWeekIndex = ref(null);
+const selectedWeekLabel = ref("Cette semaine");
 
-const takePhoto = async () => {
-  showCamera.value = true;
-  
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user' },
-      audio: false
-    });
+const weeksData = ref([
+  // Octobre
+  { week: 1, month: "Oct", distance: 30, duration: "2h 15m", elevation: 120, startDate: "2024-10-01", endDate: "2024-10-07" },
+  { week: 2, month: "Oct", distance: 22, duration: "1h 45m", elevation: 85, startDate: "2024-10-08", endDate: "2024-10-14" },
+  { week: 3, month: "Oct", distance: 25, duration: "2h 00m", elevation: 95, startDate: "2024-10-15", endDate: "2024-10-21" },
+  { week: 4, month: "Oct", distance: 32, duration: "2h 30m", elevation: 140, startDate: "2024-10-22", endDate: "2024-10-28" },
+  // Novembre
+  { week: 1, month: "Nov", distance: 18, duration: "1h 30m", elevation: 70, startDate: "2024-11-01", endDate: "2024-11-07" },
+  { week: 2, month: "Nov", distance: 21, duration: "1h 50m", elevation: 80, startDate: "2024-11-08", endDate: "2024-11-14" },
+  { week: 3, month: "Nov", distance: 27, duration: "2h 10m", elevation: 105, startDate: "2024-11-15", endDate: "2024-11-21" },
+  { week: 4, month: "Nov", distance: 25, duration: "2h 05m", elevation: 100, startDate: "2024-11-22", endDate: "2024-11-28" },
+  // Décembre
+  { week: 1, month: "Déc", distance: 25, duration: "2h 00m", elevation: 95, startDate: "2024-12-01", endDate: "2024-12-07" },
+  { week: 2, month: "Déc", distance: 23, duration: "1h 55m", elevation: 90, startDate: "2024-12-08", endDate: "2024-12-14" },
+  { week: 3, month: "Déc", distance: 21, duration: "1h 48m", elevation: 82, startDate: "2024-12-15", endDate: "2024-12-21" },
+  { week: 4, month: "Déc", distance: 20, duration: "1h 40m", elevation: 75, startDate: "2024-12-22", endDate: "2024-12-28" },
+  // Janvier (semaine actuelle pour test)
+  { week: 1, month: "Jan", distance: 43.1, duration: "3h 21m", elevation: 55, startDate: "2026-01-01", endDate: "2026-01-08" },
+]);
 
-    videoStream.value = stream;
+const fetchUser = async () => {
+  const { data, error, execute } = useFetchJson({
+    url: "/api/users/user",
+    method: "GET",
+    immediate: false,
+  });
 
-    // Attendre que la vidéo soit prête
-    setTimeout(() => {
-      const video = document.getElementById('camera-video');
-      if (video) {
-        video.srcObject = stream;
-      }
-    }, 100);
-  } catch (error) {
-    console.error('Erreur lors de l\'accès à la caméra:', error);
-    showCamera.value = false;
+  await execute();
+
+  if (!error.value) {
+    user.value = data.value.data;
+
+    // Ajouter des médias placeholder si aucun média n'existe
+    if (!user.value.medias || user.value.medias.length === 0) {
+      user.value.medias = [
+        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+1" },
+        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+2" },
+        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+3" },
+        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+4" },
+        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+5" },
+        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+6" },
+      ];
+    }
+
+    console.log(user.value);
+  } else {
+    console.error("Error fetching user:", error.value);
   }
 };
 
-const capturePhoto = () => {
-  const video = document.getElementById('camera-video');
-  const canvas = document.getElementById('camera-canvas');
-
-  if (video && canvas) {
-    const context = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
-
-    photo.value = canvas.toDataURL('image/png');
-    stopCamera();
-  }
-};
-
-const stopCamera = () => {
-  if (videoStream.value) {
-    videoStream.value.getTracks().forEach(track => track.stop());
-    videoStream.value = null;
-  }
-  showCamera.value = false;
-};
+onMounted(() => {
+  fetchUser();
+});
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
-    <TheHeader class="shrink-0" />
+  <main class="flex flex-col m-4 gap-8">
+    <div class="flex flex-row items-center gap-4">
+      <div class="w-24 h-24 rounded-full overflow-hidden">
+        <img
+          src="https://placehold.co/200x200"
+          alt="Photo de profil"
+          class="w-full h-full object-cover"
+        />
+      </div>
+      <div class="text-start">
+        <h1 class="text-xl font-semibold">
+          {{ user?.firstname }} {{ user?.lastname }}
+        </h1>
+        <p class="text-gray-600">Vevey, Switzerland</p>
+      </div>
 
-    <main class="flex-1 overflow-y-auto">
-      <div class="profile-container">
-        <div class="photo-section">
-          <div v-if="photo && !showCamera" class="photo-preview">
-            <img :src="photo" alt="Photo de profil" />
-          </div>
+      <div class="flex flex-row gap-4 ml-auto">
+        <div
+          class="cursor-pointer p-2 w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+        >
+          <Pencil :size="20" />
+        </div>
 
-          <div v-if="showCamera" class="camera-container">
-            <video id="camera-video" autoplay playsinline></video>
-            <canvas id="camera-canvas" style="display: none;"></canvas>
-            <div class="camera-controls">
-              <button @click="capturePhoto" class="capture-button">
-                📸 Capturer
-              </button>
-              <button @click="stopCamera" class="cancel-button">
-                ❌ Annuler
-              </button>
-            </div>
-          </div>
-
-          <button v-if="!showCamera" @click="takePhoto" class="photo-button">
-            📷 Prendre une photo
-          </button>
+        <div
+          class="cursor-pointer p-2 w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+        >
+          <Settings :size="20" />
         </div>
       </div>
-    </main>
+    </div>
 
-    <TheNavBar class="shrink-0" />
-  </div>
+    <div>
+      <p class="text-2xl font-semibold mb-4">Galerie</p>
+      <div
+        v-if="user?.medias && user.medias.length > 0"
+        class="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2"
+        style="scrollbar-width: none"
+      >
+        <div
+          v-for="(media, index) in user.medias"
+          :key="index"
+          class="shrink-0 aspect-square overflow-hidden rounded-lg snap-start"
+          style="width: calc((100% - 1.5rem) / 2.5)"
+        >
+          <img
+            :src="media.url"
+            :alt="`Media ${index + 1}`"
+            class="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+          />
+        </div>
+      </div>
+      <p v-else class="text-gray-600">Aucune photo disponible.</p>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <p class="text-2xl font-semibold">
+        {{ selectedWeekLabel }}
+      </p>
+      <div class="flex gap-8 mb-4">
+        <div>
+          <p class="text-gray-600">Distance</p>
+          <p class="text-xl font-semibold">
+            {{ selectedWeek ? selectedWeek.distance : "43.1" }} km
+          </p>
+        </div>
+        <div>
+          <p class="text-gray-600">Durée</p>
+          <p class="text-xl font-semibold">
+            {{ selectedWeek ? selectedWeek.duration : "3h 21m" }}
+          </p>
+        </div>
+        <div>
+          <p class="text-gray-600">Élévation</p>
+          <p class="text-xl font-semibold">
+            {{ selectedWeek ? selectedWeek.elevation : "55" }} m
+          </p>
+        </div>
+      </div>
+
+      <WeeklyChart
+        :data="weeksData"
+        :selected-index="selectedWeekIndex"
+        @select="
+          (index) => {
+            selectedWeekIndex = index;
+            selectedWeek = weeksData[index];
+          }
+        "
+        @week-label="
+          (label) => {
+            selectedWeekLabel = label;
+          }
+        "
+      />
+    </div>
+  </main>
 </template>
 
-<style scoped>
-.profile-container {
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.photo-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.photo-preview {
-  width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.photo-preview img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.camera-container {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.camera-container video {
-  width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.camera-controls {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.photo-button,
-.capture-button,
-.cancel-button {
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.photo-button {
-  background-color: #007bff;
-  color: white;
-}
-
-.photo-button:hover {
-  background-color: #0056b3;
-}
-
-.capture-button {
-  background-color: #28a745;
-  color: white;
-}
-
-.capture-button:hover {
-  background-color: #218838;
-}
-
-.cancel-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.cancel-button:hover {
-  background-color: #c82333;
-}
-
-.photo-button:active,
-.capture-button:active,
-.cancel-button:active {
-  transform: scale(0.98);
-}
-</style>
+<style scoped></style>
