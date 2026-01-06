@@ -1,10 +1,14 @@
 <script setup>
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useFetchJson } from "../composables/useFetchJson";
-import { Pencil } from "lucide-vue-next";
-import { Settings } from "lucide-vue-next";
+import { LogOut } from "lucide-vue-next";
 import WeeklyChart from "../components/WeeklyChart.vue";
+import ActivityCalendar from "../components/ActivityCalendar.vue";
+import BestPerformances from "../components/BestPerformances.vue";
 import TheNavBar from "@/components/TheNavBar.vue";
+
+const router = useRouter();
 
 const user = ref(null);
 const selectedWeek = ref(null);
@@ -158,37 +162,36 @@ const fetchUser = async () => {
 onMounted(() => {
   fetchUser();
 });
+
+const logout = () => {
+  // Supprimer le token du localStorage
+  localStorage.removeItem('token');
+  // Rediriger vers la page de connexion
+  router.push('/login');
+};
 </script>
 
 <template>
   <div class="flex flex-col h-screen">
     <main class="flex flex-col m-4 gap-8 flex-1 overflow-y-auto">
-      <div class="flex flex-row items-center gap-4">
-        <div class="w-24 h-24 rounded-full overflow-hidden">
-          <img
-            src="https://placehold.co/200x200"
-            alt="Photo de profil"
-            class="w-full h-full object-cover"
-          />
-        </div>
-        <div class="text-start">
-          <h1 class="text-xl font-semibold">
-            {{ user?.firstname }} {{ user?.lastname }}
-          </h1>
-          <p class="text-secondary">Vevey, Switzerland</p>
-        </div>
-
-        <div class="flex flex-row gap-4 ml-auto">
-          <div
-            class="rounded-full border border-separation p-2 cursor-pointer hover:opacity-80 transition-opacity"
-          >
-            <Pencil :size="20" />
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-row items-center gap-4">
+          <!-- Photo de profil -->
+          <div class="shrink-0">
+            <div class="w-24 h-24 rounded-full overflow-hidden">
+              <img
+                :src="user?.profilePicture || 'https://placehold.co/200x200'"
+                alt="Photo de profil"
+                class="w-full h-full object-cover"
+              />
+            </div>
           </div>
 
-          <div
-            class="rounded-full border border-separation p-2 cursor-pointer hover:opacity-80 transition-opacity"
-          >
-            <Settings :size="20" />
+          <div class="text-start flex-1">
+            <h1 class="text-xl font-semibold">
+              {{ user?.firstname }} {{ user?.lastname }}
+            </h1>
+            <p class="text-muted-foreground">Vevey, Switzerland</p>
           </div>
         </div>
       </div>
@@ -257,7 +260,41 @@ onMounted(() => {
           "
         />
       </div>
+
+      <div class="flex flex-col gap-2">
+        <p class="text-xl font-semibold">Calendrier d'activités</p>
+        <ActivityCalendar />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <p class="text-xl font-semibold">Meilleures performances</p>
+        <BestPerformances />
+      </div>
+
+      <!-- Footer avec credentials -->
+      <div class="border-t border-border pt-4 pb-20">
+        <div class="space-y-3">
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-muted-foreground">Email</span>
+            <span class="text-sm font-medium">{{ user?.email || 'Non renseigné' }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2">
+            <span class="text-sm text-muted-foreground">Compte créé</span>
+            <span class="text-sm font-medium">{{ user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR') : 'N/A' }}</span>
+          </div>
+
+          <!-- Bouton de déconnexion -->
+          <button
+            @click="logout"
+            class="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+          >
+            <LogOut :size="20" />
+            <span>Se déconnecter</span>
+          </button>
+        </div>
+      </div>
     </main>
+
     <TheNavBar />
   </div>
 </template>

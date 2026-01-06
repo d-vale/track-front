@@ -33,7 +33,6 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-screen">
-    <TheHeader class="shrink-0" />
     <main class="flex-1 overflow-y-auto">
       <WeekPreview :activities="activities" />
       <CommunityWidget />
