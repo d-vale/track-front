@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import TheHeader from "@/components/TheHeader.vue";
 import ActivityDetailNav from "@/components/ActivityDetailNav.vue";
 import ToastNotification from "@/components/ToastNotification.vue";
+import LapsTable from "@/components/LapsTable.vue";
 import { useFetchJson } from "../composables/useFetchJson.js";
 import { getAuthHeaders } from "@/helpers/authHelper.js";
 import { useToast } from "@/composables/useToast.js";
@@ -124,6 +125,7 @@ onMounted(async () => {
   if (data.value) {
     // L'API retourne { success: true, data: {...} }
     activity.value = data.value.data || data.value;
+    console.log(activity.value);
   }
 
   loading.value = false;
@@ -295,6 +297,11 @@ const deleteActivity = async () => {
               </span>
             </div>
           </div>
+        </div>
+
+        <!-- Tableau des laps -->
+        <div v-if="activity.laps && activity.laps.length > 0" class="px-6 py-6">
+          <LapsTable :laps="activity.laps" />
         </div>
       </div>
     </div>
