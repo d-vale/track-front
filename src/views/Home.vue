@@ -2,6 +2,7 @@
 import TheNavBar from "@/components/TheNavBar.vue";
 import ActivityPreview from "@/components/ActivityPreview.vue";
 import WeekPreview from "../components/WeekPreview.vue";
+import TheHeader from "../components/TheHeader.vue";
 import { onMounted, ref } from "vue";
 import { useFetchJson } from "../composables/useFetchJson";
 import CommunityWidget from "../components/CommunityWidget.vue";
