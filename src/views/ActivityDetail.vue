@@ -125,9 +125,8 @@ onMounted(async () => {
   if (data.value) {
     // L'API retourne { success: true, data: {...} }
     activity.value = data.value.data || data.value;
-    console.log(activity.value);
   }
-
+  console.log(activity.value);
   loading.value = false;
 });
 
@@ -158,7 +157,6 @@ const deleteActivity = async () => {
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <TheHeader />
     <ToastNotification />
 
     <!-- État de chargement -->
@@ -201,7 +199,7 @@ const deleteActivity = async () => {
         <div v-if="mapImageUrl" class="w-full">
           <img
             :src="mapImageUrl"
-            :alt="`Carte de l'activité ${activity.activityType}`"
+            alt="Carte de l'activité"
             class="w-full h-96 object-cover"
           />
         </div>
@@ -218,10 +216,8 @@ const deleteActivity = async () => {
         <!-- Titre et date -->
         <div class="px-6 py-4">
           <div class="flex flex-col gap-1">
-            <h2 class="text-xl font-bold">
-              {{ activity.activityType === "run" ? "Footing" : "Activité" }}
-            </h2>
-            <div class="flex items-center gap-2">
+            <h2 class="text-xl font-bold">Activité</h2>
+            <div class="flex items-center gap-1">
               <svg
                 width="15"
                 height="13"
@@ -278,25 +274,24 @@ const deleteActivity = async () => {
               </span>
             </div>
           </div>
-
-          <!-- Ligne 3: Allure -->
-          <div class="px-6 py-2">
-            <div class="flex flex-col gap-0.5">
+          <!-- Ligne 3: Allure et Dénivelé -->
+          <div class="px-6 py-2 flex items-center gap-16">
+            <div class="flex flex-col gap-0.5 flex-1">
               <span class="text-[10px] font-medium">Allure</span>
               <span class="text-xl font-bold">
-                {{
-                  activity.moving_duration > 0
-                    ? (
-                        ((activity.distance * 1000) /
-                          activity.moving_duration) *
-                        60
-                      ).toFixed(2)
-                    : "0"
-                }}
-                m/s
+                {{ activity.avgPace }} min/km
               </span>
             </div>
-          </div>
+            <div class="flex flex-col gap-0.5 flex-1">
+              <span class="text-[10px] font-medium">Ratio difficulté</span>
+              <span class="text-xl font-bold">
+                {{
+                  (activity.difficultyScore)
+                }}
+  
+              </span>
+            </div>
+          </div>          
         </div>
 
         <!-- Tableau des laps -->

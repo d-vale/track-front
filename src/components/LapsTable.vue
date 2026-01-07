@@ -6,37 +6,38 @@ const props = defineProps({
   },
 });
 
-// Formater l'allure (pace) en min/km
-const formatPace = (lap) => {
-  if (!lap.duration || !lap.distance || lap.distance === 0) return "--:--";
-
-  // Durée en secondes / distance en km = secondes par km
-  const secondsPerKm = (lap.duration / 1000) / (lap.distance / 1000);
-  const minutes = Math.floor(secondsPerKm / 60);
-  const seconds = Math.floor(secondsPerKm % 60);
-
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-};
-
 // Calculer la largeur relative de la barre orange
 const getBarWidth = (lap, allLaps) => {
-  if (!lap.duration || allLaps.length === 0) return 50;
+  if (!lap.pace || allLaps.length === 0) return 50;
 
-  const durations = allLaps.map((l) => l.duration || 0);
-  const maxDuration = Math.max(...durations);
-  const minDuration = Math.min(...durations);
+  // Convertir les paces (format "5:02") en secondes pour comparaison
+  const paceToSeconds = (paceStr) => {
+    if (!paceStr) return 0;
+    const [min, sec] = paceStr.split(':').map(Number);
+    return min * 60 + sec;
+  };
 
-  if (maxDuration === minDuration) return 100;
+  const paces = allLaps.map((l) => paceToSeconds(l.pace));
+  const maxPace = Math.max(...paces);
+  const minPace = Math.min(...paces);
+
+  if (maxPace === minPace) return 100;
+
+  const currentPace = paceToSeconds(lap.pace);
 
   // Calculer un pourcentage entre 40% et 100% pour avoir une visualisation significative
+  // Plus le pace est élevé (plus lent), plus la barre est longue
   const percentage =
-    ((lap.duration - minDuration) / (maxDuration - minDuration)) * 60 + 40;
+    ((currentPace - minPace) / (maxPace - minPace)) * 60 + 40;
   return Math.round(percentage);
 };
 </script>
 
 <template>
   <div class="w-full inline-flex flex-col justify-start items-start">
+    <!-- Titre de la section -->
+    <h3 class="text-lg font-bold mb-2">Allure</h3>
+
     <!-- En-tête du tableau -->
     <div
       class="self-stretch p-2.5 border-b border-separation inline-flex justify-between items-center"
@@ -50,7 +51,7 @@ const getBarWidth = (lap, allLaps) => {
         </div>
       </div>
       <div class="flex justify-end items-center gap-5">
-        <div class="w-16 text-center justify-center text-[10px] font-medium leading-4">
+        <div class="w-16 text-left justify-center text-[10px] font-medium leading-4">
           Rythme
         </div>
         <div class="w-9 text-center justify-center text-[10px] font-medium leading-4">
@@ -75,27 +76,27 @@ const getBarWidth = (lap, allLaps) => {
           {{ index + 1 }}
         </div>
         <div class="text-center justify-center text-xs font-semibold leading-4">
-          {{ formatPace(lap) }}
+          {{ lap.pace || "--:--" }}
         </div>
       </div>
 
       <!-- Barre de visualisation et statistiques -->
-      <div class="flex justify-end items-center gap-2">
+      <div class="flex justify-end items-center gap-5">
         <!-- Barre de visualisation -->
         <div class="w-16 rounded-[5px] inline-flex flex-col justify-center items-start">
           <div
-            class="h-5 bg-[#FF8C00] rounded"
+            class="h-5 rounded bg-(--orange)"
             :style="{ width: `${getBarWidth(lap, laps)}%` }"
           ></div>
         </div>
 
         <!-- D+ -->
-        <div class="w-9 text-center justify-center text-xs font-semibold leading-4">
+        <div class="w-9 text-center text-xs font-semibold leading-4">
           {{ Math.round(lap.elevationGain || 0) }}
         </div>
 
         <!-- D- -->
-        <div class="w-9 text-center justify-center text-xs font-semibold leading-4">
+        <div class="w-9 text-center text-xs font-semibold leading-4">
           {{ Math.round(lap.elevationLoss || 0) }}
         </div>
       </div>
