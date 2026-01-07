@@ -42,7 +42,7 @@ import {
 
     <div class="w-full px-2.5 inline-flex justify-between items-center">
       <div class="text-center justify-center text-sm font-medium leading-4">Temps total</div>
-      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ (total_time_ever / 3600).toFixed(0) }} h</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ Math.floor(total_time_ever / 3600000) }} h {{ Math.floor((total_time_ever % 3600000) / 60000) }} min</div>
     </div>
 </div>
 </template>
