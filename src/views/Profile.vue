@@ -9,13 +9,13 @@ import BestPerformances from "../components/BestPerformances.vue";
 import TheNavBar from "@/components/TheNavBar.vue";
 
 const router = useRouter();
-
 const user = ref(null);
 const selectedWeek = ref(null);
 const selectedWeekIndex = ref(null);
 const selectedWeekLabel = ref("Cette semaine");
 
 const weeksData = ref([]);
+const activities = ref([]);
 
 const getMonthLabel = (monthNumber) => {
   const months = [
@@ -129,6 +129,23 @@ onMounted(() => {
   fetchWeeklyData();
 });
 
+const fetchActivities = async () => {
+  const { data, error, execute } = useFetchJson({
+    url: "/api/activities",
+    method: "GET",
+    immediate: false,
+  });
+
+  await execute();
+
+  if (!error.value) {
+    activities.value = data.value.data;
+    console.log("Activities fetched in Profile:", activities.value);
+  } else {
+    console.error("Error fetching activities:", error.value);
+  }
+};
+
 const fetchUser = async () => {
   const { data, error, execute } = useFetchJson({
     url: "/api/users/user",
@@ -160,6 +177,7 @@ const fetchUser = async () => {
 };
 
 onMounted(() => {
+  fetchActivities();
   fetchUser();
 });
 
@@ -263,7 +281,7 @@ const logout = () => {
 
       <div class="flex flex-col gap-2">
         <p class="text-xl font-semibold">Calendrier d'activités</p>
-        <ActivityCalendar />
+        <ActivityCalendar :activities="activities" />
       </div>
 
       <div class="flex flex-col gap-2">
