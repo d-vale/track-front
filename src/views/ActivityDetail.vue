@@ -21,8 +21,7 @@ const activityId = route.params.id;
 const activity = ref(null);
 const loading = ref(true);
 
-const MAPBOX_ACCESS_TOKEN =
-  "pk.eyJ1Ijoiay1zZWwiLCJhIjoiY21qcXlycDJ3M3hlcjNlcXhyMThlZWZydCJ9.uDpE5Dw1is7vJOmVzVXHGQ";
+const TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 // Fetch de l'activité spécifique
 const { data, error, execute } = useFetchJson({
@@ -67,7 +66,7 @@ const getStaticMapUrl = (encodedPolyline) => {
     );
     const width = 1200;
     const height = 800;
-    const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pathEncoded}/auto/${width}x${height}@2x?access_token=${MAPBOX_ACCESS_TOKEN}&attribution=false&logo=false`;
+    const url = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/${pathEncoded}/auto/${width}x${height}@2x?access_token=${TOKEN}&attribution=false&logo=false`;
 
     return url;
   } catch (err) {
