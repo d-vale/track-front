@@ -5,6 +5,8 @@ import TheHeader from "@/components/TheHeader.vue";
 import ActivityDetailNav from "@/components/ActivityDetailNav.vue";
 import ToastNotification from "@/components/ToastNotification.vue";
 import LapsTable from "@/components/LapsTable.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
+import ChoiceModal from "@/components/ChoiceModal.vue";
 import { useFetchJson } from "../composables/useFetchJson.js";
 import { getAuthHeaders } from "@/helpers/authHelper.js";
 import { useToast } from "@/composables/useToast.js";
@@ -20,6 +22,29 @@ const activityId = route.params.id;
 // État de l'activité
 const activity = ref(null);
 const loading = ref(true);
+
+// État des modales
+const showDeleteModal = ref(false);
+const showPhotoModal = ref(false);
+
+// Options pour le modal de photo
+const photoChoices = [
+  {
+    label: "Importer une photo",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+  },
+  {
+    label: "Prendre une photo",
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`,
+  },
+];
 
 const TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -134,8 +159,18 @@ const goBack = () => {
   router.back();
 };
 
-// Supprimer l'activité
-const deleteActivity = async () => {
+// Ouvrir le modal de suppression
+const openDeleteModal = () => {
+  showDeleteModal.value = true;
+};
+
+// Ouvrir le modal de photo
+const openPhotoModal = () => {
+  showPhotoModal.value = true;
+};
+
+// Confirmer la suppression de l'activité
+const confirmDelete = async () => {
   try {
     const response = await fetch(`/api/activities/${activityId}`, {
       method: "DELETE",
@@ -152,11 +187,54 @@ const deleteActivity = async () => {
     addToast("Erreur lors de la suppression de l'activité", "error");
   }
 };
+
+// Gérer le choix de photo
+const handlePhotoChoice = ({ choice, index }) => {
+  if (index === 0) {
+    // Importer une photo
+    handleImportPhoto();
+  } else if (index === 1) {
+    // Prendre une photo
+    handleTakePhoto();
+  }
+};
+
+// Fonction pour importer une photo (à implémenter)
+const handleImportPhoto = () => {
+  // TODO: Implémenter la logique d'importation de photo
+  console.log("Import photo clicked");
+};
+
+// Fonction pour prendre une photo (à implémenter)
+const handleTakePhoto = () => {
+  // TODO : Implémenter la logique de prise de photo
+  console.log("Take photo clicked");
+};
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col">
     <ToastNotification />
+
+    <!-- Modales -->
+    <ConfirmModal
+      :is-open="showDeleteModal"
+      title="Supprimer l'activité"
+      message="Êtes-vous sûr de vouloir supprimer cette activité ? Cette action est irréversible."
+      confirm-text="Supprimer"
+      cancel-text="Annuler"
+      confirm-class="bg-red-500 hover:bg-red-600"
+      @confirm="confirmDelete"
+      @close="showDeleteModal = false"
+    />
+
+    <ChoiceModal
+      :is-open="showPhotoModal"
+      title="Ajouter une photo"
+      :choices="photoChoices"
+      @select="handlePhotoChoice"
+      @close="showPhotoModal = false"
+    />
 
     <!-- État de chargement -->
     <div v-if="loading" class="flex-1 flex items-center justify-center">
@@ -191,7 +269,11 @@ const deleteActivity = async () => {
       <div class="relative w-full">
         <!-- Barre de navigation en position absolue -->
         <div class="absolute top-4 left-0 right-0 z-10">
-          <ActivityDetailNav :on-back="goBack" :on-delete="deleteActivity" />
+          <ActivityDetailNav
+            :on-back="goBack"
+            :on-delete="openDeleteModal"
+            :on-camera="openPhotoModal"
+          />
         </div>
 
         <!-- Image de la carte -->
@@ -284,13 +366,10 @@ const deleteActivity = async () => {
             <div class="flex flex-col gap-0.5 flex-1">
               <span class="text-[10px] font-medium">Ratio difficulté</span>
               <span class="text-xl font-bold">
-                {{
-                  (activity.difficultyScore)
-                }}
-  
+                {{ activity.difficultyScore }}
               </span>
             </div>
-          </div>          
+          </div>
         </div>
 
         <!-- Tableau des laps -->
