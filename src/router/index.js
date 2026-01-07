@@ -38,11 +38,6 @@ const routes = [
     component: Home
   },
   {
-    path: '/history',
-    name: 'History',
-    component: ActivitiesHistory
-  },
-  {
     path: '/activity/:id',
     name: 'ActivityDetail',
     component: ActivityDetail,
