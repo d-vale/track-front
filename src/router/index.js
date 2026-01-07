@@ -3,9 +3,9 @@ import Login from '../views/Login.vue';
 import Tracking from '../views/Tracking.vue';
 import Profile from '../views/Profile.vue';
 import Home from '../views/Home.vue';
-import ActivitiesHistory from '../views/ActivitiesHistory.vue';
 import ActivityDetail from '../views/ActivityDetail.vue';
 import Register from '../views/Register.vue';
+
 
 const routes = [
   {
@@ -38,15 +38,10 @@ const routes = [
     component: Home
   },
   {
-    path: '/history',
-    name: 'History',
-    component: ActivitiesHistory
-  },
-  {
     path: '/activity:id',
     name: 'ActivityDetail',
     component: ActivityDetail
-  }
+  },
 ];
 
 const router = createRouter({

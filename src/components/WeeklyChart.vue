@@ -62,7 +62,7 @@ const midDistance = computed(() => Math.round(maxDistance.value / 2));
 // Dimensions du graphique
 const width = 360;
 const height = 180;
-const padding = { top: 20, right: 20, bottom: 40, left: 10};
+const padding = { top: 20, right: 50, bottom: 40, left: 8};
 const chartWidth = width - padding.left - padding.right;
 const chartHeight = height - padding.top - padding.bottom;
 
