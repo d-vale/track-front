@@ -91,7 +91,7 @@ const calendarDays = computed(() => {
         <!-- Jour avec activité -->
         <div
           v-if="dayData.day && dayData.hasActivity"
-          class="w-10 h-10 bg-orange-500 rounded-full flex justify-center items-center"
+          class="w-10 h-10 bg-(--orange) rounded-3xl flex justify-center items-center"
         >
           <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" class="w-4 h-4 text-white">
             <path
@@ -104,7 +104,7 @@ const calendarDays = computed(() => {
         <!-- Jour d'aujourd'hui sans activité -->
         <div
           v-else-if="dayData.day && dayData.isToday"
-          class="w-10 h-10 p-0.5 rounded-full border-2 border-foreground flex justify-center items-center"
+          class="w-10 h-10 p-0.5 rounded-3xl outline-1 -outline-offset-1 outline-(--noir) flex justify-center items-center"
         >
           <span class="text-foreground text-xs font-semibold">{{ dayData.day }}</span>
         </div>
@@ -112,7 +112,7 @@ const calendarDays = computed(() => {
         <!-- Jour futur sans activité -->
         <div
           v-else-if="dayData.day && dayData.isFuture"
-          class="w-10 h-10 p-0.5 rounded-full border border-secondary flex justify-center items-center"
+          class="w-10 h-10 p-0.5 rounded-3xl outline-1 -outline-offset-1 outline-(--secondary) flex justify-center items-center"
         >
           <span class="text-foreground text-xs font-semibold">{{ dayData.day }}</span>
         </div>
@@ -120,7 +120,7 @@ const calendarDays = computed(() => {
         <!-- Jour passé sans activité -->
         <div
           v-else-if="dayData.day"
-          class="w-10 h-10 p-0.5 bg-secondary rounded-full flex justify-center items-center"
+          class="w-10 h-10 p-0.5 bg-(--secondary) rounded-3xl flex justify-center items-center"
         >
           <span class="text-foreground text-xs font-semibold">{{ dayData.day }}</span>
         </div>
