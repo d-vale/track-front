@@ -16,6 +16,7 @@ const selectedWeekLabel = ref("Cette semaine");
 
 const weeksData = ref([]);
 const activities = ref([]);
+const medias = ref([]);
 
 const getMonthLabel = (monthNumber) => {
   const months = [
@@ -125,10 +126,6 @@ const fetchWeeklyData = async () => {
   }
 };
 
-onMounted(() => {
-  fetchWeeklyData();
-});
-
 const fetchActivities = async () => {
   const { data, error, execute } = useFetchJson({
     url: "/api/activities",
@@ -146,6 +143,23 @@ const fetchActivities = async () => {
   }
 };
 
+const fetchMedias = async () => {
+  const { data, error, execute } = useFetchJson({
+    url: "/api/medias/all",
+    method: "GET",
+    immediate: false,
+  });
+
+  await execute();
+
+  if (!error.value) {
+    medias.value = data.value.data;
+    console.log("Medias fetched :", medias.value);
+  } else {
+    console.error("Error fetching medias:", error.value);
+  }
+};
+
 const fetchUser = async () => {
   const { data, error, execute } = useFetchJson({
     url: "/api/users/user",
@@ -158,34 +172,23 @@ const fetchUser = async () => {
   if (!error.value) {
     user.value = data.value.data;
     console.log(user.value);
-
-    // Ajouter des médias placeholder si aucun média n'existe
-    if (!user.value.medias || user.value.medias.length === 0) {
-      user.value.medias = [
-        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+1" },
-        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+2" },
-        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+3" },
-        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+4" },
-        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+5" },
-        { url: "https://placehold.co/300x300/e2e8f0/64748b?text=Photo+6" },
-      ];
-    }
-
   } else {
     console.error("Error fetching user:", error.value);
   }
 };
 
 onMounted(() => {
+  fetchWeeklyData();
   fetchActivities();
   fetchUser();
+  fetchMedias();
 });
 
 const logout = () => {
   // Supprimer le token du localStorage
-  localStorage.removeItem('token');
+  localStorage.removeItem("token");
   // Rediriger vers la page de connexion
-  router.push('/login');
+  router.push("/login");
 };
 </script>
 
@@ -234,7 +237,7 @@ const logout = () => {
             />
           </div>
         </div>
-        <p v-else class="text-secondary">Aucune photo disponible.</p>
+        <p v-else class="text-secondary">Vous n'avez pas de médias.</p>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -294,11 +297,17 @@ const logout = () => {
         <div class="space-y-3">
           <div class="flex justify-between items-center py-2">
             <span class="text-sm text-muted-foreground">Email</span>
-            <span class="text-sm font-medium">{{ user?.email || 'Non renseigné' }}</span>
+            <span class="text-sm font-medium">{{
+              user?.email || "Non renseigné"
+            }}</span>
           </div>
           <div class="flex justify-between items-center py-2">
             <span class="text-sm text-muted-foreground">Compte créé</span>
-            <span class="text-sm font-medium">{{ user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR') : 'N/A' }}</span>
+            <span class="text-sm font-medium">{{
+              user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString("fr-FR")
+                : "N/A"
+            }}</span>
           </div>
 
           <!-- Bouton de déconnexion -->
