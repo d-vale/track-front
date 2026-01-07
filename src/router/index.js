@@ -38,10 +38,16 @@ const routes = [
     component: Home
   },
   {
-    path: '/activity:id',
-    name: 'ActivityDetail',
-    component: ActivityDetail
+    path: '/history',
+    name: 'History',
+    component: ActivitiesHistory
   },
+  {
+    path: '/activity/:id',
+    name: 'ActivityDetail',
+    component: ActivityDetail,
+    props: true
+  }
 ];
 
 const router = createRouter({

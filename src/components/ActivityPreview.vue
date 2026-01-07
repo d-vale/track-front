@@ -1,26 +1,53 @@
 <script setup>
+import { ref, computed, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useFetchJson } from "../composables/useFetchJson.js";
 import polyline from "@mapbox/polyline";
-import { calcPace } from "../utils/paceCalculator";
 
-const props = defineProps({
-  activities: {
-    type: Array,
-    required: false,
-    default: () => [],
-  },
-  loading: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  error: {
-    type: [String, Object],
-    required: false,
-    default: null,
-  },
+const router = useRouter();
+
+// Déclaration du fetch pour récupérer toutes les activités
+const { data, error, execute } = useFetchJson({
+  url: "/api/activities",
+  method: "GET",
+  immediate: false,
 });
 
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+// État des activités
+const activities = ref([]);
+const loading = ref(true);
+
+const MAPBOX_ACCESS_TOKEN =
+  "pk.eyJ1Ijoiay1zZWwiLCJhIjoiY21qcXlycDJ3M3hlcjNlcXhyMThlZWZydCJ9.uDpE5Dw1is7vJOmVzVXHGQ";
+
+// Surveiller les changements de data et error
+watch([data, error], async () => {
+  loading.value = false;
+
+  if (error.value) {
+    console.error("Erreur API:", error.value);
+    return;
+  }
+
+  if (data.value) {
+    console.log("API Response:", data.value);
+
+    // Récupérer et trier les activités de la plus récente à la plus ancienne
+    let activitiesArray = [];
+
+    if (Array.isArray(data.value)) {
+      activitiesArray = data.value;
+    } else if (data.value.data && Array.isArray(data.value.data)) {
+      activitiesArray = data.value.data;
+    }
+
+    if (activitiesArray.length > 0) {
+      activities.value = activitiesArray.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+    }
+  }
+});
 
 // Générer l'URL de l'image statique Mapbox pour un polyline
 const getStaticMapUrl = (encodedPolyline) => {
@@ -108,6 +135,17 @@ const formatDuration = (milliseconds) => {
   }
   return `${minutes}m ${secs}s`;
 };
+
+// Lien vers la page de détail de l'activité (Avec paramêtre d'ID)
+const goToActivityDetail = (activityId) => {
+  router.push({ name: "ActivityDetail", params: { id: activityId } }); // = <router-link>
+};
+
+// Charger les activités au montage du composant
+onMounted(async () => {
+  loading.value = true;
+  await execute();
+});
 </script>
 
 <template>
@@ -133,7 +171,7 @@ const formatDuration = (milliseconds) => {
       <div
         v-for="activity in activities"
         :key="activity._id"
-        class="w-full pt-2.5 border-t border-(--gris-clair) inline-flex flex-col justify-start items-start"
+        class="w-full pt-2.5 border-t border-separation inline-flex flex-col justify-start items-start"
       >
         <div class="self-stretch px-6 inline-flex justify-between items-center">
           <div
@@ -163,7 +201,10 @@ const formatDuration = (milliseconds) => {
               </div>
             </div>
           </div>
-          <div class="w-20 pl-2.5 py-2.5 flex justify-end items-center gap-2.5">
+          <div
+            class="w-20 pl-2.5 py-2.5 flex justify-end items-center gap-2.5 cursor-pointer"
+            @click="goToActivityDetail(activity._id)"
+          >
             <div
               class="text-center justify-center text-xs font-medium leading-4"
             >
