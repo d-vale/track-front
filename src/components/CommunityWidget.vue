@@ -10,7 +10,7 @@ import {
 </script>
 
 <template>
-    <div class="w-full px-2.5 py-5 inline-flex flex-col justify-start items-start gap-2.5">
+    <div class="w-full px-2.5 pb-4 inline-flex flex-col justify-start items-start gap-2.5">
     <div class="py-2.5 flex justify-start items-center gap-2.5">
         <div class="text-center justify-center text-noir text-xl font-semibold leading-4">Communauté</div>
     </div>
@@ -46,5 +46,4 @@ import {
     </div>
 </div>
 </template>
-
 <style scoped></style>
