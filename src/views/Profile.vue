@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useFetchJson } from "../composables/useFetchJson";
-import { LogOut } from "lucide-vue-next";
+import { LogOut, CircleUserRound } from "lucide-vue-next";
 import WeeklyChart from "../components/WeeklyChart.vue";
 import ActivityCalendar from "../components/ActivityCalendar.vue";
 import BestPerformances from "../components/BestPerformances.vue";
@@ -195,12 +195,14 @@ const logout = () => {
         <div class="flex flex-row items-center gap-4">
           <!-- Photo de profil -->
           <div class="shrink-0">
-            <div class="w-24 h-24 rounded-full overflow-hidden">
+            <div class="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center">
               <img
-                :src="user?.profilePicture || 'https://placehold.co/200x200'"
+                v-if="user?.profilePicture"
+                :src="user.profilePicture"
                 alt="Photo de profil"
                 class="w-full h-full object-cover"
               />
+              <CircleUserRound v-else :size="80" stroke-width="1.5" class="text-(--noir)" />
             </div>
           </div>
 
