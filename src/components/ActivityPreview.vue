@@ -149,7 +149,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full my-12">
+  <div class="w-full">
     <!-- État de chargement -->
     <div v-if="loading" class="text-center py-8">
       <p class="text-sm font-medium">Chargement des activités...</p>
@@ -171,7 +171,7 @@ onMounted(async () => {
       <div
         v-for="activity in activities"
         :key="activity._id"
-        class="w-full pt-2.5 border-t border-separation inline-flex flex-col justify-start items-start"
+        class="w-full pt-2.5 border-t border-(--secondary) inline-flex flex-col justify-start items-start"
       >
         <div class="self-stretch px-6 inline-flex justify-between items-center">
           <div
