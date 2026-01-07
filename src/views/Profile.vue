@@ -98,7 +98,6 @@ const fetchWeeklyData = async () => {
 
   await execute();
   if (!error.value && data.value && data.value.data) {
-    console.log("Weekly data fetched successfully : ", data.value);
 
     // Remplir les données de l'API dans les semaines correspondantes
     data.value.data.forEach((item) => {
@@ -137,7 +136,6 @@ const fetchActivities = async () => {
 
   if (!error.value) {
     activities.value = data.value.data;
-    console.log("Activities fetched in Profile:", activities.value);
   } else {
     console.error("Error fetching activities:", error.value);
   }
@@ -154,7 +152,6 @@ const fetchMedias = async () => {
 
   if (!error.value) {
     medias.value = data.value.data;
-    console.log("Medias fetched :", medias.value);
   } else {
     console.error("Error fetching medias:", error.value);
   }
@@ -171,7 +168,6 @@ const fetchUser = async () => {
 
   if (!error.value) {
     user.value = data.value.data;
-    console.log(user.value);
   } else {
     console.error("Error fetching user:", error.value);
   }

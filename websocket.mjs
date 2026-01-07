@@ -28,14 +28,12 @@ export async function connect() {
     await ws.sub(import.meta.env.VITE_WS_CHANNEL_NAME, (msg) => {
       if (msg.type == "users_count") {
         users_count_connected.value = msg.count;
-        console.log(msg);
       } else if (msg.type == "community_totals") {
         total_km_ever.value = msg.data.totalKmEver;
         total_activities_ever.value = msg.data.totalActivitiesEver;
         total_elevation_ever.value = msg.data.totalElevationEver;
         total_users_community.value = msg.data.totalUsers;
         total_time_ever.value = msg.data.totalTimeEver;
-        console.log(msg);
       }
     });
 

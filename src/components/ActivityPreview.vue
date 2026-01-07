@@ -30,8 +30,6 @@ watch([data, error], async () => {
   }
 
   if (data.value) {
-    console.log("API Response:", data.value);
-
     // Récupérer et trier les activités de la plus récente à la plus ancienne
     let activitiesArray = [];
 
