@@ -1,9 +1,11 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Sun, Moon, CircleUserRound } from 'lucide-vue-next';
+import { useFetchJson } from "@/composables/useFetchJson.js";
 
 const router = useRouter();
+const user = ref(null);
 const theme = ref(
   document.querySelector("body").classList.contains("dark") ? "dark" : "light"
 );
@@ -20,6 +22,24 @@ const navigate = (path) => {
   router.push(path);
 };
 
+// Récupérer les informations de l'utilisateur
+const fetchUser = async () => {
+  const { data, error, execute } = useFetchJson({
+    url: "/api/users/user",
+    method: "GET",
+    immediate: false,
+  });
+
+  await execute();
+
+  if (!error.value && data.value?.data) {
+    user.value = data.value.data;
+  }
+};
+
+onMounted(() => {
+  fetchUser();
+});
 </script>
 
 <template>
