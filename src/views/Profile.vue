@@ -140,6 +140,7 @@ const fetchUser = async () => {
 
   if (!error.value) {
     user.value = data.value.data;
+    console.log(user.value);
 
     // Ajouter des médias placeholder si aucun média n'existe
     if (!user.value.medias || user.value.medias.length === 0) {
@@ -153,7 +154,6 @@ const fetchUser = async () => {
       ];
     }
 
-    console.log(user.value);
   } else {
     console.error("Error fetching user:", error.value);
   }
