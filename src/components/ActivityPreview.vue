@@ -272,15 +272,7 @@ onMounted(async () => {
             <div
               class="text-center justify-center text-base font-bold leading-4"
             >
-              {{
-                activity.moving_duration > 0
-                  ? (
-                      ((activity.distance * 1000) / activity.moving_duration) *
-                      60
-                    ).toFixed(2)
-                  : "0"
-              }}
-              m/s
+              {{ activity.avgPace }} min/km
             </div>
           </div>
           <div

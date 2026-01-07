@@ -3,7 +3,6 @@ import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import TheNavBar from "@/components/TheNavBar.vue";
 import ActivityPreview from "@/components/ActivityPreview.vue";
-import TheHeader from "@/components/TheHeader.vue";
 import WeekPreview from "../components/WeekPreview.vue";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { useToast } from "@/composables/useToast.js";
@@ -23,12 +22,14 @@ onMounted(() => {
 </script>
 
 <template>
+  <TheHeader/>
   <div class="flex flex-col h-screen">
     <TheHeader class="shrink-0" />
     <ToastNotification />
     <main class="flex-1 overflow-y-auto">
-      <WeekPreview/>
-      <ActivityPreview/>
+      <WeekPreview :activities="activities" />
+      <CommunityWidget/>
+      <ActivityPreview :activities="activities" />
     </main>
     <TheNavBar class="shrink-0" />
   </div>

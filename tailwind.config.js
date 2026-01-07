@@ -1,5 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
+  ],
   darkMode: 'class',
   theme: {
     extend: {
@@ -7,7 +11,7 @@ export default {
         noir: 'var(--noir)',
         orange: 'var(--orange)',
         base: 'var(--base)',
-        'gris-clair': 'var(--gris-clair)',
+        secondary: 'var(--secondary)',
         'gris-fonce': 'var(--gris-fonce)',
         'separation-grise': 'var(--separation-grise)',
       },

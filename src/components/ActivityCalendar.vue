@@ -11,15 +11,20 @@ const props = defineProps({
 
 const daysOfWeek = ["L", "M", "M", "J", "V", "S", "D"];
 
-// Obtenir le lundi de la semaine en cours
-const getCurrentWeekMonday = () => {
-  const today = new Date();
-  const day = today.getDay();
-  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(today);
-  monday.setDate(diff);
-  monday.setHours(0, 0, 0, 0);
-  return monday;
+// Obtenir le nombre de jours dans le mois
+const getDaysInMonth = (date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  return new Date(year, month + 1, 0).getDate();
+};
+
+// Obtenir le premier jour du mois (0 = dimanche, 1 = lundi, etc.)
+const getFirstDayOfMonth = (date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  // Convertir pour que lundi = 0
+  return firstDay === 0 ? 6 : firstDay - 1;
 };
 
 // Vérifier si une activité existe pour une date
@@ -31,49 +36,62 @@ const hasActivityOnDate = (date) => {
   });
 };
 
-// Générer les informations pour chaque jour de la semaine
-const weekDays = computed(() => {
-  const monday = getCurrentWeekMonday();
+// Générer les jours du calendrier pour le mois en cours
+const calendarDays = computed(() => {
+  const currentMonth = new Date();
+  const daysInMonth = getDaysInMonth(currentMonth);
+  const firstDay = getFirstDayOfMonth(currentMonth);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  return Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(monday);
-    date.setDate(date.getDate() + i);
+  const days = [];
 
-    return {
-      dayNumber: date.getDate(),
+  // Ajouter des cellules vides pour les jours avant le début du mois
+  for (let i = 0; i < firstDay; i++) {
+    days.push({ day: null, hasActivity: false, isToday: false, isFuture: false });
+  }
+
+  // Ajouter les jours du mois
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    date.setHours(0, 0, 0, 0);
+
+    days.push({
+      day,
       hasActivity: hasActivityOnDate(date),
       isToday: date.getTime() === today.getTime(),
       isFuture: date > today,
-    };
-  });
+    });
+  }
+
+  return days;
 });
 </script>
 
 <template>
-  <div class="w-full p-2.5 inline-flex flex-col justify-start items-start gap-2.5">
-    <div class="py-2.5 flex justify-start items-center gap-2.5">
-      <div class="text-center justify-center text-noir text-xl font-semibold leading-4">
-        Votre série d'activités
+  <div class="w-full">
+    <!-- Jours de la semaine -->
+    <div class="grid grid-cols-7 gap-1 mb-2">
+      <div
+        v-for="day in daysOfWeek"
+        :key="day"
+        class="text-center text-xl font-semibold"
+      >
+        {{ day }}
       </div>
     </div>
-    <div class="self-stretch inline-flex justify-between items-center">
-      <div
-        v-for="(dayData, index) in weekDays"
-        :key="index"
-        class="w-10 p-2.5 rounded-[100px] inline-flex flex-col justify-center items-center gap-4"
-      >
-        <div class="self-stretch h-9 flex flex-col justify-start items-start gap-[3px]">
-          <div class="self-stretch text-center justify-center text-noir text-xl font-semibold leading-4">
-            {{ daysOfWeek[index] }}
-          </div>
-        </div>
 
+    <!-- Grille du calendrier -->
+    <div class="grid grid-cols-7 gap-2">
+      <div
+        v-for="(dayData, index) in calendarDays"
+        :key="index"
+        class="aspect-square flex items-center justify-center"
+      >
         <!-- Jour avec activité -->
         <div
-          v-if="dayData.hasActivity"
-          class="w-7 h-7 bg-(--orange) rounded-3xl flex justify-center items-center"
+          v-if="dayData.day && dayData.hasActivity"
+          class="w-10 h-10 bg-orange-500 rounded-full flex justify-center items-center"
         >
           <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 13" class="w-4 h-4 text-white">
             <path
@@ -85,26 +103,26 @@ const weekDays = computed(() => {
 
         <!-- Jour d'aujourd'hui sans activité -->
         <div
-          v-else-if="dayData.isToday"
-          class="w-7 h-7 p-0.5 rounded-3xl outline-1 -outline-offset-1 outline-(--noir) flex justify-center items-center"
+          v-else-if="dayData.day && dayData.isToday"
+          class="w-10 h-10 p-0.5 rounded-full border-2 border-foreground flex justify-center items-center"
         >
-          <span class="text-noir text-xs font-semibold">{{ dayData.dayNumber }}</span>
+          <span class="text-foreground text-xs font-semibold">{{ dayData.day }}</span>
         </div>
 
         <!-- Jour futur sans activité -->
         <div
-          v-else-if="dayData.isFuture"
-          class="w-7 h-7 p-0.5 rounded-3xl outline-1 -outline-offset-1 outline-(--secondary) flex justify-center items-center"
+          v-else-if="dayData.day && dayData.isFuture"
+          class="w-10 h-10 p-0.5 rounded-full border border-secondary flex justify-center items-center"
         >
-          <span class="text-noir text-xs font-semibold">{{ dayData.dayNumber }}</span>
+          <span class="text-foreground text-xs font-semibold">{{ dayData.day }}</span>
         </div>
 
         <!-- Jour passé sans activité -->
         <div
-          v-else
-          class="w-7 h-7 p-0.5 bg-(--secondary) rounded-3xl flex justify-center items-center"
+          v-else-if="dayData.day"
+          class="w-10 h-10 p-0.5 bg-secondary rounded-full flex justify-center items-center"
         >
-          <span class="text-noir text-xs font-semibold">{{ dayData.dayNumber }}</span>
+          <span class="text-foreground text-xs font-semibold">{{ dayData.day }}</span>
         </div>
       </div>
     </div>

@@ -22,7 +22,12 @@ const showMapStyleModal = ref(false);
 const trackingCoordinates = ref([]); // Coordonnées pour la trace
 
 onMounted(() => {
-  initializeMap();
+  const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+  if (!token) {
+    console.error("Mapbox access token is not defined in environment variables.");
+    return;
+  }
+  initializeMap(token);
 });
 
 onBeforeUnmount(() => {
@@ -41,10 +46,8 @@ const getMapStyleUrl = (style) => {
   return styles[style] || styles.day;
 };
 
-const initializeMap = () => {
-  mapboxgl.accessToken =
-    "pk.eyJ1Ijoiay1zZWwiLCJhIjoiY21qcXlycDJ3M3hlcjNlcXhyMThlZWZydCJ9.uDpE5Dw1is7vJOmVzVXHGQ";
-
+const initializeMap = (token) => {
+  mapboxgl.accessToken = token;
   mapInstance.value = new mapboxgl.Map({
     container: "map",
     style: getMapStyleUrl(mapStyle.value),

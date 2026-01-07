@@ -24,7 +24,7 @@ const getStrokeColor = (path) => {
 </script>
 
 <template>
-  <div class="w-full bg-(--base) px-4 py-3 shadow-lg border-t border-separation">
+  <div class="w-full bg-(--base) px-4 py-3 shadow-lg fixed bottom-0 left-0 right-0 z-50">
     <div class="flex justify-around items-center w-full">
       <!-- Accueil -->
       <button @click="navigate('/home')" class="flex flex-col justify-center items-center hover:opacity-80 transition-opacity cursor-pointer">
@@ -41,13 +41,6 @@ const getStrokeColor = (path) => {
               <path d="M12 18.5C15.5899 18.5 18.5 15.5899 18.5 12C18.5 8.41015 15.5899 5.5 12 5.5C8.41015 5.5 5.5 8.41015 5.5 12C5.5 15.5899 8.41015 18.5 12 18.5Z" :fill="getStrokeColor('/tracking')"/>
           </svg>
           <div :style="{ color: isActive('/tracking') ? 'var(--orange)' : 'var(--noir)' }" class="text-center text-xs font-semibold font-inter mt-1">Enregistrer</div>
-      </button>
-      <!-- Historique -->
-      <button @click="navigate('/history')" class="flex flex-col justify-center items-center hover:opacity-80 transition-opacity cursor-pointer">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6">
-              <path d="M6 14L7.5 11.1C7.66307 10.7761 7.91112 10.5027 8.21761 10.309C8.5241 10.1152 8.8775 10.0084 9.24 10H20M20 10C20.3055 9.99947 20.6071 10.0689 20.8816 10.2031C21.1561 10.3372 21.3963 10.5325 21.5836 10.7739C21.7709 11.0153 21.9004 11.2963 21.9622 11.5956C22.024 11.8948 22.0164 12.2042 21.94 12.5L20.4 18.5C20.2886 18.9316 20.0362 19.3135 19.6829 19.5853C19.3296 19.8571 18.8957 20.003 18.45 20H4C3.46957 20 2.96086 19.7893 2.58579 19.4142C2.21071 19.0391 2 18.5304 2 18V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21072 3.46957 3 4 3H7.9C8.23449 2.99673 8.56445 3.07739 8.8597 3.23462C9.15495 3.39186 9.40604 3.62063 9.59 3.9L10.4 5.1C10.5821 5.37653 10.83 5.60353 11.1215 5.76061C11.413 5.91769 11.7389 5.99995 12.07 6H18C18.5304 6 19.0391 6.21072 19.4142 6.58579C19.7893 6.96086 20 7.46957 20 8V10Z" :stroke="getStrokeColor('/history')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <div :style="{ color: isActive('/history') ? 'var(--orange)' : 'var(--noir)' }" class="text-center text-xs font-semibold font-inter mt-1">Historique</div>
       </button>
       <!-- Profil -->
       <button @click="navigate('/profile')" class="flex flex-col justify-center items-center hover:opacity-80 transition-opacity cursor-pointer">

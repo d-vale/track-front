@@ -3,6 +3,7 @@ import "./style.css";
 import App from "./App.vue";
 import router from "./router";
 import { setDefaultBaseUrl, setDefaultHeaders } from "./libs/fetchJson";
+import VueApexCharts from "vue3-apexcharts";
 
 setDefaultBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
@@ -24,5 +25,7 @@ if (!theme) {
     document.querySelector("body").classList.add("dark");
   }
 }
+const app = createApp(App).use(router)
+app.use(VueApexCharts);
+app.mount("#app");
 
-createApp(App).use(router).mount("#app");
