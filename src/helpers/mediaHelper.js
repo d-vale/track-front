@@ -53,7 +53,7 @@ async function uploadToCloudinary(file, options = {}) {
  */
 async function addMediaToActivity(activityId, mediaUrl) {
   const { request } = fetchJson({
-    url: `/api/medias/${activityId}`,
+    url: `/api/activities/${activityId}/medias`,
     method: 'POST',
     data: { mediaUrl },
   });
@@ -94,7 +94,7 @@ export async function getUserMedias() {
  */
 export async function deleteMediaFromActivity(activityId, mediaUrl) {
   const { request } = fetchJson({
-    url: `/api/medias/${activityId}`,
+    url: `/api/activities/${activityId}/medias`,
     method: 'DELETE',
     data: { mediaUrl },
   });

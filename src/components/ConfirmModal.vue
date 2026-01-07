@@ -49,17 +49,17 @@ const handleBackdropClick = (e) => {
   <Transition name="modal">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-white/20 px-4"
+      class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-4 modal-backdrop"
       @click="handleBackdropClick"
     >
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all">
+      <div class="modal-content rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all">
         <!-- Titre -->
-        <h3 class="text-lg font-bold text-gray-900 mb-4">
+        <h3 class="text-lg font-bold modal-title mb-4">
           {{ title }}
         </h3>
 
         <!-- Message -->
-        <p class="text-sm text-gray-600 mb-6">
+        <p class="text-sm modal-text mb-6">
           {{ message }}
         </p>
 
@@ -67,13 +67,13 @@ const handleBackdropClick = (e) => {
         <div class="flex gap-3 justify-end">
           <button
             @click="handleCancel"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            class="px-4 py-2 text-sm font-medium modal-button rounded-lg hover:opacity-80 transition-opacity"
           >
             {{ cancelText }}
           </button>
           <button
             @click="handleConfirm"
-            :class="['px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors', confirmClass]"
+            :class="['px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90', confirmClass]"
           >
             {{ confirmText }}
           </button>
@@ -84,6 +84,29 @@ const handleBackdropClick = (e) => {
 </template>
 
 <style scoped>
+.modal-backdrop {
+  background-color: rgba(var(--base-rgb, 255, 255, 255), 0.2);
+}
+
+.modal-content {
+  background-color: var(--base);
+  border: 1px solid var(--separation-grise-opacity);
+}
+
+.modal-title {
+  color: var(--noir);
+}
+
+.modal-text {
+  color: var(--secondary);
+}
+
+.modal-button {
+  color: var(--noir);
+  background-color: var(--base);
+  border: 1px solid var(--separation-grise-opacity);
+}
+
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.2s ease;
@@ -94,13 +117,13 @@ const handleBackdropClick = (e) => {
   opacity: 0;
 }
 
-.modal-enter-active .bg-white,
-.modal-leave-active .bg-white {
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
   transition: transform 0.2s ease;
 }
 
-.modal-enter-from .bg-white,
-.modal-leave-to .bg-white {
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
   transform: scale(0.95);
 }
 </style>

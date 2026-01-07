@@ -10,6 +10,7 @@ import ChoiceModal from "@/components/ChoiceModal.vue";
 import { useFetchJson } from "../composables/useFetchJson.js";
 import { getAuthHeaders } from "@/helpers/authHelper.js";
 import { useToast } from "@/composables/useToast.js";
+import { uploadAndAddMediaToActivity } from "@/helpers/mediaHelper.js";
 import polyline from "@mapbox/polyline";
 
 const route = useRoute();
@@ -26,6 +27,11 @@ const loading = ref(true);
 // État des modales
 const showDeleteModal = ref(false);
 const showPhotoModal = ref(false);
+
+// Refs pour les inputs file
+const fileInputRef = ref(null);
+const cameraInputRef = ref(null);
+const isUploading = ref(false);
 
 // Options pour le modal de photo
 const photoChoices = [
@@ -199,22 +205,73 @@ const handlePhotoChoice = ({ choice, index }) => {
   }
 };
 
-// Fonction pour importer une photo (à implémenter)
+// Fonction pour importer une photo
 const handleImportPhoto = () => {
-  // TODO: Implémenter la logique d'importation de photo
-  console.log("Import photo clicked");
+  fileInputRef.value.click();
 };
 
-// Fonction pour prendre une photo (à implémenter)
+// Fonction pour prendre une photo
 const handleTakePhoto = () => {
-  // TODO : Implémenter la logique de prise de photo
-  console.log("Take photo clicked");
+  cameraInputRef.value.click();
+};
+
+// Gérer la sélection d'un fichier (import)
+const onFileSelected = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    isUploading.value = true;
+    await uploadAndAddMediaToActivity(file, activityId);
+    addToast("Photo ajoutée avec succès", "success");
+  } catch (error) {
+    console.error("Erreur lors de l'upload:", error);
+    addToast("Erreur lors de l'ajout de la photo", "error");
+  } finally {
+    isUploading.value = false;
+    event.target.value = '';
+  }
+};
+
+// Gérer la capture d'une photo (caméra)
+const onCameraCapture = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    isUploading.value = true;
+    await uploadAndAddMediaToActivity(file, activityId);
+    addToast("Photo ajoutée avec succès", "success");
+  } catch (error) {
+    console.error("Erreur lors de l'upload:", error);
+    addToast("Erreur lors de l'ajout de la photo", "error");
+  } finally {
+    isUploading.value = false;
+    event.target.value = '';
+  }
 };
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col">
     <ToastNotification />
+
+    <!-- Inputs file invisibles -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept="image/*"
+      class="hidden"
+      @change="onFileSelected"
+    />
+    <input
+      ref="cameraInputRef"
+      type="file"
+      accept="image/*"
+      capture
+      class="hidden"
+      @change="onCameraCapture"
+    />
 
     <!-- Modales -->
     <ConfirmModal
