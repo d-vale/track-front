@@ -32,6 +32,7 @@ onMounted(() => {
 </script>
 
 <template>
+  <TheHeader/>
   <div class="flex flex-col h-screen">
     <main class="flex-1 overflow-y-auto">
       <WeekPreview :activities="activities" />

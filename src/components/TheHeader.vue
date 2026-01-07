@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { Sun, Moon, Settings } from 'lucide-vue-next';
+import { Sun, Moon, CircleUserRound } from 'lucide-vue-next';
 
 const router = useRouter();
 const theme = ref(
@@ -16,11 +16,10 @@ const toggleTheme = () => {
   localStorage.setItem("theme", theme.value);
 };
 
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  router.push("/login");
-  ws.close();
+const navigate = (path) => {
+  router.push(path);
 };
+
 </script>
 
 <template>
@@ -40,16 +39,20 @@ const handleLogout = () => {
         <Sun v-if="theme === 'light'" :size="20" />
         <Moon v-else :size="20" />
       </button>
-      <button @click="" class="p-2 rounded-lg">
-        <Settings size="20"/>
+      <button @click="navigate('/profile')" class="p-2 rounded-lg">
+        <div class="shrink-0">
+            <div class="w-[29px] h-[29px] rounded-full overflow-hidden bg-(--base) flex items-center justify-center">
+              <img
+                v-if="user?.profilePicture"
+                :src="user.profilePicture"
+                alt="Photo de profil"
+                class="w-full h-full object-cover"
+              />
+              <CircleUserRound v-else :size="18" class="text-(--noir)" />
+            </div>
+          </div>
       </button>
 
-      <button
-        @click="handleLogout()"
-        class="text-sm px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"
-      >
-        Logout
-      </button>
     </div>
   </header>
 </template>
