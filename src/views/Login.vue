@@ -26,7 +26,7 @@ const handleLogin = async () => {
     localStorage.setItem("token", token);
     setDefaultHeaders({ Authorization: `Bearer ${token}` });
     connect(); // websocket connection
-    router.push("/tracking");
+    router.push("/home");
   } else if (error.value) {
     console.error(
       `ERROR : ${error.value.status} - MESSAGE : ${error.value.statusText}`

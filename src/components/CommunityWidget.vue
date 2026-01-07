@@ -1,34 +1,12 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { users_count } from "../../websocket.mjs";
-import { useFetchJson } from "../composables/useFetchJson";
-
-const totalKilometers = ref(0);
-
-const { data, error, execute } = useFetchJson({
-  url: '/api/users/yearly',
-  method: 'GET',
-  immediate: false,
-})
-
-const fetchTotalKilometers = async () => {
-  await execute();
-  if (data.value?.success) {
-    totalKilometers.value = data.value.data.totalKilometers || 0;
-  }
-}
-
-onMounted(() => {
-  fetchTotalKilometers();
-});
-
-// Fonction pour refaire le fetch (peut être appelée après création d'une activité)
-const refreshTotalKilometers = async () => {
-  await fetchTotalKilometers();
-};
-
-// Expose la fonction pour utilisation externe si nécessaire
-defineExpose({ refreshTotalKilometers });
+import {
+  users_count_connected,
+  total_km_ever,
+  total_activities_ever,
+  total_elevation_ever,
+  total_users_community,
+  total_time_ever
+} from "../../websocket.mjs";
 </script>
 
 <template>
@@ -38,14 +16,33 @@ defineExpose({ refreshTotalKilometers });
     </div>
 
     <div class="w-full px-2.5 inline-flex justify-between items-center">
-    <div class="text-center justify-center text-sm font-medium leading-4">Coureurs connectés</div>
-    <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4"> {{ users_count }}</div>
+      <div class="text-center justify-center text-sm font-medium leading-4">Coureurs connectés</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ users_count_connected }}</div>
     </div>
 
+    <div class="w-full px-2.5 inline-flex justify-between items-center">
+      <div class="text-center justify-center text-sm font-medium leading-4">Membres de la communauté</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ total_users_community }}</div>
+    </div>
 
     <div class="w-full px-2.5 inline-flex justify-between items-center">
-    <div class="text-center justify-center text-sm font-medium leading-4">Nombre de kilomètres parcourus </div>
-    <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4"> {{ totalKilometers.toFixed(2) }} km</div>
+      <div class="text-center justify-center text-sm font-medium leading-4">Nombre de kilomètres parcourus</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ total_km_ever.toFixed(2) }} km</div>
+    </div>
+
+    <div class="w-full px-2.5 inline-flex justify-between items-center">
+      <div class="text-center justify-center text-sm font-medium leading-4">Dénivelé total</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ total_elevation_ever.toFixed(0) }} m</div>
+    </div>
+
+    <div class="w-full px-2.5 inline-flex justify-between items-center">
+      <div class="text-center justify-center text-sm font-medium leading-4">Nombre d'activités</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ total_activities_ever }}</div>
+    </div>
+
+    <div class="w-full px-2.5 inline-flex justify-between items-center">
+      <div class="text-center justify-center text-sm font-medium leading-4">Temps total</div>
+      <div class="text-center justify-center text-(--gris-fonce) text-xs font-medium leading-4">{{ (total_time_ever / 3600).toFixed(0) }} h</div>
     </div>
 </div>
 </template>
