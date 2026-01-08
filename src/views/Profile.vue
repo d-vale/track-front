@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useFetchJson } from "../composables/useFetchJson";
-import { LogOut, CircleUserRound } from "lucide-vue-next";
+import { LogOut, CircleUserRound, X, ChevronLeft, ChevronRight } from "lucide-vue-next";
 import WeeklyChart from "../components/WeeklyChart.vue";
 import ActivityCalendar from "../components/ActivityCalendar.vue";
 import BestPerformances from "../components/BestPerformances.vue";
@@ -17,6 +17,9 @@ const selectedWeekLabel = ref("Cette semaine");
 const weeksData = ref([]);
 const activities = ref([]);
 const medias = ref([]);
+const allMediaUrls = ref([]);
+const selectedImageIndex = ref(null);
+const showImageViewer = ref(false);
 
 const getMonthLabel = (monthNumber) => {
   const months = [
@@ -152,6 +155,9 @@ const fetchMedias = async () => {
 
   if (!error.value) {
     medias.value = data.value.data;
+    // Aplatir toutes les URLs des médias dans un seul tableau
+    allMediaUrls.value = medias.value.flatMap(activity => activity.medias || []);
+    console.log("All media URLs:", allMediaUrls.value);
   } else {
     console.error("Error fetching medias:", error.value);
   }
@@ -186,6 +192,56 @@ const logout = () => {
   // Rediriger vers la page de connexion
   router.push("/login");
 };
+
+const openImageViewer = (index) => {
+  selectedImageIndex.value = index;
+  showImageViewer.value = true;
+};
+
+const closeImageViewer = () => {
+  showImageViewer.value = false;
+  selectedImageIndex.value = null;
+};
+
+const nextImage = () => {
+  if (selectedImageIndex.value < allMediaUrls.value.length - 1) {
+    selectedImageIndex.value++;
+  }
+};
+
+const previousImage = () => {
+  if (selectedImageIndex.value > 0) {
+    selectedImageIndex.value--;
+  }
+};
+
+// Touch handling for swipe
+let touchStartX = 0;
+let touchEndX = 0;
+
+const handleTouchStart = (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+};
+
+const handleTouchEnd = (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+};
+
+const handleSwipe = () => {
+  const swipeThreshold = 50;
+  const diff = touchStartX - touchEndX;
+
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      // Swipe left - next image
+      nextImage();
+    } else {
+      // Swipe right - previous image
+      previousImage();
+    }
+  }
+};
 </script>
 
 <template>
@@ -218,18 +274,18 @@ const logout = () => {
       <div>
         <p class="text-xl font-semibold mb-4">Galerie</p>
         <div
-          v-if="user?.medias && user.medias.length > 0"
+          v-if="allMediaUrls && allMediaUrls.length > 0"
           class="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2"
           style="scrollbar-width: none"
         >
           <div
-            v-for="(media, index) in user.medias"
+            v-for="(mediaUrl, index) in allMediaUrls"
             :key="index"
-            class="shrink-0 aspect-square overflow-hidden rounded-lg snap-start"
-            style="width: calc((100% - 1.5rem) / 2.5)"
+            class="shrink-0 aspect-square overflow-hidden rounded-lg snap-start w-32 sm:w-36 md:w-40 lg:w-44"
+            @click="openImageViewer(index)"
           >
             <img
-              :src="media.url"
+              :src="mediaUrl"
               :alt="`Media ${index + 1}`"
               class="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
             />
@@ -321,6 +377,60 @@ const logout = () => {
     </main>
 
     <TheNavBar />
+
+    <!-- Image Viewer Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showImageViewer"
+        class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+        @click="closeImageViewer"
+        @touchstart="handleTouchStart"
+        @touchend="handleTouchEnd"
+      >
+        <!-- Close Button -->
+        <button
+          @click="closeImageViewer"
+          class="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-colors shadow-lg"
+        >
+          <X :size="24" class="text-white" />
+        </button>
+
+        <!-- Image Counter -->
+        <div class="absolute top-4 left-4 z-10 text-white text-sm font-medium bg-black/60 px-4 py-2 rounded-full shadow-lg">
+          {{ selectedImageIndex + 1 }} / {{ allMediaUrls.length }}
+        </div>
+
+        <!-- Previous Button -->
+        <button
+          v-if="selectedImageIndex > 0"
+          @click.stop="previousImage"
+          class="absolute left-4 z-10 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-colors shadow-lg"
+        >
+          <ChevronLeft :size="36" class="text-white" stroke-width="2.5" />
+        </button>
+
+        <!-- Image -->
+        <div
+          class="max-w-[90vw] max-h-[90vh] flex items-center justify-center"
+          @click.stop
+        >
+          <img
+            :src="allMediaUrls[selectedImageIndex]"
+            :alt="`Media ${selectedImageIndex + 1}`"
+            class="max-w-full max-h-full object-contain rounded-lg"
+          />
+        </div>
+
+        <!-- Next Button -->
+        <button
+          v-if="selectedImageIndex < allMediaUrls.length - 1"
+          @click.stop="nextImage"
+          class="absolute right-4 z-10 p-3 rounded-full bg-white/20 hover:bg-white/30 transition-colors shadow-lg"
+        >
+          <ChevronRight :size="36" class="text-white" stroke-width="2.5" />
+        </button>
+      </div>
+    </Teleport>
   </div>
 </template>
 
