@@ -1,13 +1,26 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useFetchJson } from "@/composables/useFetchJson";
 import { setDefaultHeaders } from "@/libs/fetchJson";
 import { connect } from "../../websocket.mjs";
+import { useToast } from "@/composables/useToast";
+import ToastNotification from "@/components/ToastNotification.vue";
 
+const route = useRoute();
 const router = useRouter();
+const { addToast } = useToast();
 const email = ref("jpinard@bluewin.ch");
 const password = ref("password123");
+
+// Vérifier si on vient de la page register avec succès
+onMounted(() => {
+  if (route.query.registered === "true") {
+    addToast("Compte créé avec succès! Vous pouvez maintenant vous connecter.", "success", 4000);
+    // Nettoyer le paramètre de l'URL
+    router.replace({ query: {} });
+  }
+});
 
 const { data, error, execute } = useFetchJson({
   url: "/api/auth/login",
@@ -31,16 +44,19 @@ const handleLogin = async () => {
     console.error(
       `ERROR : ${error.value.status} - MESSAGE : ${error.value.statusText}`
     );
+    addToast("Nom d'utilisateur ou mot de passe erroné", "error", 4000);
   } else if (data.value) {
     console.error(
       `ERROR : ${data.value.data.error.code} - MESSAGE : ${data.value.data.error.message}`
     );
+    addToast("Nom d'utilisateur ou mot de passe erroné", "error", 4000);
   }
 };
 </script>
 
 <template>
   <div class="flex flex-col items-center gap-8 min-h-screen justify-center">
+    <ToastNotification />
     <img class="h-10" src="/logo.svg" alt="" />
     <div class="flex flex-col items-center gap-2">
       <h2 class="text-2xl font-medium leading-tight">Se connecter</h2>

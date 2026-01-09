@@ -2,8 +2,6 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useFetchJson } from "@/composables/useFetchJson";
-import { setDefaultHeaders } from "@/libs/fetchJson";
-import { connect } from "../../websocket.mjs";
 
 const router = useRouter();
 const username = ref("");
@@ -96,11 +94,7 @@ const handleRegister = async () => {
   console.log("Réponse de l'API - Data:", data.value, "Error:", error.value);
 
   if (data.value?.success) {
-    const token = data.value.data.token;
-    localStorage.setItem("token", token);
-    setDefaultHeaders({ Authorization: `Bearer ${token}` });
-    connect(); // websocket connection
-    router.push("/tracking");
+    router.push({ path: "/login", query: { registered: "true" } });
   } else if (error.value) {
     console.error(`Erreur API: ${error.value.status} - ${error.value.statusText}`);
     errorMessage.value = `Erreur ${error.value.status}: ${error.value.statusText}. Vérifiez que l'API est accessible.`;
