@@ -10,7 +10,7 @@ import ChoiceModal from "@/components/ChoiceModal.vue";
 import { useFetchJson } from "../composables/useFetchJson.js";
 import { getAuthHeaders } from "@/helpers/authHelper.js";
 import { useToast } from "@/composables/useToast.js";
-import { uploadAndAddMediaToActivity } from "@/helpers/mediaHelper.js";
+import { uploadAndAddMediaToActivity, getActivityMedias } from "@/helpers/mediaHelper.js";
 import polyline from "@mapbox/polyline";
 
 const route = useRoute();
@@ -23,6 +23,7 @@ const activityId = route.params.id;
 // État de l'activité
 const activity = ref(null);
 const loading = ref(true);
+const activityMedias = ref([]); // Médias de l'activité
 
 // État des modales
 const showDeleteModal = ref(false);
@@ -32,6 +33,12 @@ const showPhotoModal = ref(false);
 const fileInputRef = ref(null);
 const cameraInputRef = ref(null);
 const isUploading = ref(false);
+
+// États pour la gestion des images et du carrousel
+const showingPhotos = ref(false); // true = carrousel de photos, false = carte
+const currentPhotoIndex = ref(0); // Index de la photo actuellement affichée
+const touchStartX = ref(0); // Position de départ du swipe
+const touchEndX = ref(0); // Position de fin du swipe
 
 // Options pour le modal de photo
 const photoChoices = [
@@ -114,6 +121,32 @@ const mapImageUrl = computed(() => {
   return null;
 });
 
+// URLs des médias (photos) de l'activité
+const mediaUrls = computed(() => {
+  if (!activityMedias.value || !Array.isArray(activityMedias.value) || activityMedias.value.length === 0) {
+    return [];
+  }
+  // Les médias retournés sont directement des URLs (strings)
+  // Si c'est un objet, on essaie de récupérer mediaUrl ou url
+  const urls = activityMedias.value.map(media => {
+    if (typeof media === 'string') {
+      return media;
+    }
+    return media.mediaUrl || media.url || media;
+  });
+  console.log('URLs des médias:', urls);
+  return urls;
+});
+
+// Vérifier si l'activité a des photos
+const hasPhotos = computed(() => mediaUrls.value.length > 0);
+
+// URL de l'image actuellement affichée dans le carrousel
+const currentPhotoUrl = computed(() => {
+  if (mediaUrls.value.length === 0) return null;
+  return mediaUrls.value[currentPhotoIndex.value];
+});
+
 // Formater la date et l'heure
 const formatDateTime = (isoDate) => {
   const date = new Date(isoDate);
@@ -147,6 +180,31 @@ const formatDuration = (milliseconds) => {
   return `${minutes}m ${secs}s`;
 };
 
+// Charger les médias de l'activité
+const loadActivityMedias = async () => {
+  try {
+    const response = await getActivityMedias(activityId);
+
+    // L'API retourne { success: true, data: { medias: [...] } }
+    let medias = [];
+    if (response && response.data && Array.isArray(response.data.medias)) {
+      medias = response.data.medias;
+    } else if (Array.isArray(response)) {
+      medias = response;
+    } else if (response && Array.isArray(response.data)) {
+      medias = response.data;
+    } else if (response && response.medias && Array.isArray(response.medias)) {
+      medias = response.medias;
+    }
+
+    console.log('Médias chargés:', medias);
+    activityMedias.value = medias;
+  } catch (error) {
+    console.error('Erreur lors du chargement des médias:', error);
+    activityMedias.value = [];
+  }
+};
+
 // Charger l'activité
 onMounted(async () => {
   loading.value = true;
@@ -156,7 +214,11 @@ onMounted(async () => {
     // L'API retourne { success: true, data: {...} }
     activity.value = data.value.data || data.value;
   }
-  console.log(activity.value);
+  console.log('Activité:', activity.value);
+
+  // Charger les médias
+  await loadActivityMedias();
+
   loading.value = false;
 });
 
@@ -224,6 +286,8 @@ const onFileSelected = async (event) => {
     isUploading.value = true;
     await uploadAndAddMediaToActivity(file, activityId);
     addToast("Photo ajoutée avec succès", "success");
+    // Recharger les médias pour afficher la nouvelle photo
+    await loadActivityMedias();
   } catch (error) {
     console.error("Erreur lors de l'upload:", error);
     addToast("Erreur lors de l'ajout de la photo", "error");
@@ -242,6 +306,8 @@ const onCameraCapture = async (event) => {
     isUploading.value = true;
     await uploadAndAddMediaToActivity(file, activityId);
     addToast("Photo ajoutée avec succès", "success");
+    // Recharger les médias pour afficher la nouvelle photo
+    await loadActivityMedias();
   } catch (error) {
     console.error("Erreur lors de l'upload:", error);
     addToast("Erreur lors de l'ajout de la photo", "error");
@@ -249,6 +315,55 @@ const onCameraCapture = async (event) => {
     isUploading.value = false;
     event.target.value = '';
   }
+};
+
+// Basculer entre la carte et le carrousel de photos
+const toggleView = () => {
+  showingPhotos.value = !showingPhotos.value;
+  if (showingPhotos.value) {
+    currentPhotoIndex.value = 0; // Réinitialiser à la première photo
+  }
+};
+
+// Navigation dans le carrousel
+const nextPhoto = () => {
+  if (currentPhotoIndex.value < mediaUrls.value.length - 1) {
+    currentPhotoIndex.value++;
+  }
+};
+
+const previousPhoto = () => {
+  if (currentPhotoIndex.value > 0) {
+    currentPhotoIndex.value--;
+  }
+};
+
+// Gestion du swipe pour mobile
+const handleTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX;
+};
+
+const handleTouchMove = (e) => {
+  touchEndX.value = e.touches[0].clientX;
+};
+
+const handleTouchEnd = () => {
+  const swipeThreshold = 50; // Distance minimale pour considérer un swipe
+  const diff = touchStartX.value - touchEndX.value;
+
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      // Swipe vers la gauche -> photo suivante
+      nextPhoto();
+    } else {
+      // Swipe vers la droite -> photo précédente
+      previousPhoto();
+    }
+  }
+
+  // Réinitialiser
+  touchStartX.value = 0;
+  touchEndX.value = 0;
 };
 </script>
 
@@ -333,19 +448,112 @@ const onCameraCapture = async (event) => {
           />
         </div>
 
-        <!-- Image de la carte -->
-        <div v-if="mapImageUrl" class="w-full">
-          <img
-            :src="mapImageUrl"
-            alt="Carte de l'activité"
-            class="w-full h-96 object-cover"
-          />
-        </div>
-        <div
-          v-else
-          class="w-full h-96 bg-gray-200 flex items-center justify-center"
-        >
-          <p class="text-gray-500">Carte non disponible</p>
+        <!-- Image principale : Carte ou Carrousel de photos -->
+        <div class="relative w-full">
+          <!-- Mode Carte -->
+          <div v-if="!showingPhotos && mapImageUrl" class="w-full">
+            <img
+              :src="mapImageUrl"
+              alt="Carte de l'activité"
+              class="w-full h-96 object-cover"
+            />
+          </div>
+          <div
+            v-else-if="!showingPhotos && !mapImageUrl"
+            class="w-full h-96 bg-gray-200 flex items-center justify-center"
+          >
+            <p class="text-gray-500">Carte non disponible</p>
+          </div>
+
+          <!-- Mode Carrousel de photos -->
+          <div
+            v-if="showingPhotos && hasPhotos"
+            class="relative w-full h-96 bg-black"
+            @touchstart="handleTouchStart"
+            @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
+          >
+            <!-- Photo actuelle -->
+            <img
+              :src="currentPhotoUrl"
+              :alt="`Photo ${currentPhotoIndex + 1}`"
+              class="w-full h-full object-contain"
+            />
+
+            <!-- Boutons de navigation (desktop) -->
+            <button
+              v-if="currentPhotoIndex > 0"
+              @click="previousPhoto"
+              class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200 active:scale-95 md:block hidden z-20"
+              aria-label="Photo précédente"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 18L9 12L15 6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+
+            <button
+              v-if="currentPhotoIndex < mediaUrls.length - 1"
+              @click="nextPhoto"
+              class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-3 transition-all duration-200 active:scale-95 md:block hidden z-20"
+              aria-label="Photo suivante"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 18L15 12L9 6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+
+            <!-- Indicateur de position -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium md:text-sm text-xs md:px-3 md:py-1 px-2 py-0.5 z-20">
+              {{ currentPhotoIndex + 1 }} / {{ mediaUrls.length }}
+            </div>
+          </div>
+
+          <!-- Miniature d'aperçu en bas à gauche (seulement si il y a des photos) -->
+          <div
+            v-if="hasPhotos"
+            @click="toggleView"
+            class="absolute bottom-4 left-4 w-20 h-20 rounded-lg overflow-hidden cursor-pointer select-none shadow-lg border-2 border-white hover:scale-105 hover:shadow-2xl transition-all duration-200 z-20"
+          >
+            <!-- Afficher la miniature de la première photo si on est en mode carte -->
+            <img
+              v-if="!showingPhotos"
+              :src="mediaUrls[0]"
+              alt="Aperçu photos"
+              class="w-full h-full object-cover"
+            />
+            <!-- Afficher la miniature de la carte si on est en mode carrousel -->
+            <img
+              v-else-if="mapImageUrl"
+              :src="mapImageUrl"
+              alt="Aperçu carte"
+              class="w-full h-full object-cover"
+            />
+          </div>
         </div>
       </div>
 
@@ -437,5 +645,3 @@ const onCameraCapture = async (event) => {
     </div>
   </div>
 </template>
-
-<style scoped></style>

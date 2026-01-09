@@ -1,5 +1,6 @@
 import { CLOUDINARY_CONFIG } from '../../config/cloudinary.mjs';
 import { fetchJson } from '@/libs/fetchJson.js';
+import { getAuthHeaders } from '@/helpers/authHelper.js';
 
 /**
  * Upload une image vers Cloudinary (fonction interne)
@@ -56,6 +57,7 @@ async function addMediaToActivity(activityId, mediaUrl) {
     url: `/api/medias/${activityId}/`,
     method: 'POST',
     data: { mediaUrl },
+    headers: getAuthHeaders(),
   });
   return request;
 }
@@ -69,6 +71,7 @@ export async function getActivityMedias(activityId) {
   const { request } = fetchJson({
     url: `/api/medias/${activityId}`,
     method: 'GET',
+    headers: getAuthHeaders(),
   });
   return request;
 }
@@ -82,6 +85,7 @@ export async function getUserMedias() {
   const { request } = fetchJson({
     url: `/api/medias/all`,
     method: 'GET',
+    headers: getAuthHeaders(),
   });
   return request;
 }
@@ -97,6 +101,7 @@ export async function deleteMediaFromActivity(activityId, mediaUrl) {
     url: `/api/medias/${activityId}/`,
     method: 'DELETE',
     data: { mediaUrl },
+    headers: getAuthHeaders(),
   });
   return request;
 }
