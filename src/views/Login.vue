@@ -10,8 +10,8 @@ import ToastNotification from "@/components/ToastNotification.vue";
 const route = useRoute();
 const router = useRouter();
 const { addToast } = useToast();
-const email = ref("jpinard@bluewin.ch");
-const password = ref("password123");
+const email = ref("");
+const password = ref("");
 
 // Vérifier si on vient de la page register avec succès
 onMounted(() => {
