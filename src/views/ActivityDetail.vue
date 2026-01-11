@@ -9,7 +9,6 @@ import ChoiceModal from "@/components/ChoiceModal.vue";
 import MapViewer from "@/components/MapViewer.vue";
 import ActivityStats from "@/components/ActivityStats.vue";
 import { useFetchJson } from "../composables/useFetchJson.js";
-import { getAuthHeaders } from "@/helpers/authHelper.js";
 import { useToast } from "@/composables/useToast.js";
 import { uploadAndAddMediaToActivity, getActivityMedias, deleteMediaFromActivity } from "@/helpers/mediaHelper.js";
 
@@ -57,6 +56,17 @@ const photoChoices = [
 const { data, error, execute } = useFetchJson({
   url: `/api/activities/${activityId}`,
   method: "GET",
+  immediate: false,
+});
+
+// Fetch pour la suppression de l'activité
+const {
+  data: deleteData,
+  error: deleteError,
+  execute: executeDelete
+} = useFetchJson({
+  url: `/api/activities/${activityId}`,
+  method: "DELETE",
   immediate: false,
 });
 
@@ -138,24 +148,21 @@ const openPhotoModal = () => {
 const confirmDelete = async () => {
   try {
     console.log(`Envoi de la requête DELETE pour l'activité ${activityId}`);
-    const response = await fetch(`/api/activities/${activityId}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
+
+    await executeDelete();
 
     console.log('Réponse DELETE:', {
-      status: response.status,
-      ok: response.ok,
-      statusText: response.statusText
+      deleteData: deleteData.value,
+      deleteError: deleteError.value
     });
 
-    if (response.ok) {
-      console.log('Suppression réussie, redirection vers /home');
-      router.push({ path: "/home", query: { deleted: "true" } });
+    if (deleteError.value) {
+      console.error('Échec de la suppression:', deleteError.value);
+      addToast("Erreur lors de la suppression de l'activité", "error");
     } else {
-      const errorText = await response.text();
-      console.error('Échec de la suppression:', errorText);
-      addToast(`Erreur lors de la suppression: ${response.status}`, "error");
+      console.log('Suppression réussie, redirection vers /home');
+      addToast("Activité supprimée avec succès", "success");
+      router.push({ path: "/home", query: { deleted: "true" } });
     }
   } catch (err) {
     console.error("Erreur lors de la suppression:", err);
