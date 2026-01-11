@@ -1,10 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useFetchJson } from "../composables/useFetchJson.js";
 import polyline from "@mapbox/polyline";
 
 const router = useRouter();
+const route = useRoute();
 
 // Déclaration du fetch pour récupérer toutes les activités
 const { data, error, execute } = useFetchJson({
@@ -143,6 +144,14 @@ const goToActivityDetail = (activityId) => {
 onMounted(async () => {
   loading.value = true;
   await execute();
+});
+
+// Recharger les activités quand on revient après une suppression
+watch(() => route.query.deleted, async (newVal) => {
+  if (newVal === 'true') {
+    loading.value = true;
+    await execute();
+  }
 });
 </script>
 
