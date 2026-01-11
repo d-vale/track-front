@@ -137,15 +137,25 @@ const openPhotoModal = () => {
 // Confirmer la suppression de l'activité
 const confirmDelete = async () => {
   try {
+    console.log(`Envoi de la requête DELETE pour l'activité ${activityId}`);
     const response = await fetch(`/api/activities/${activityId}`, {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
 
+    console.log('Réponse DELETE:', {
+      status: response.status,
+      ok: response.ok,
+      statusText: response.statusText
+    });
+
     if (response.ok) {
+      console.log('Suppression réussie, redirection vers /home');
       router.push({ path: "/home", query: { deleted: "true" } });
     } else {
-      addToast("Erreur lors de la suppression de l'activité", "error");
+      const errorText = await response.text();
+      console.error('Échec de la suppression:', errorText);
+      addToast(`Erreur lors de la suppression: ${response.status}`, "error");
     }
   } catch (err) {
     console.error("Erreur lors de la suppression:", err);
