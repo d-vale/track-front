@@ -12,8 +12,8 @@ import { useFetchJson } from "../composables/useFetchJson.js";
 import { useToast } from "@/composables/useToast.js";
 import { uploadAndAddMediaToActivity, getActivityMedias, deleteMediaFromActivity } from "@/helpers/mediaHelper.js";
 
-const route = useRoute;
-const router = useRouter;
+const route = useRoute();
+const router = useRouter();
 const { addToast } = useToast;
 
 // ID de l'activité depuis les paramètres de l'URL
