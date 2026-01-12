@@ -177,7 +177,7 @@ const handleRegister = async () => {
       />
       <button
         type="submit"
-        class="rounded-lg border border-transparent px-5 py-2.5 text-base font-medium bg-[#1a1a1a] cursor-pointer transition-colors hover:border-[#646cff]"
+        class="rounded-lg border border-transparent px-5 py-2.5 text-base font-medium bg-gray-800 dark:bg-[#1a1a1a] text-white cursor-pointer transition-colors hover:border-[#646cff]"
       >
         S'inscrire
       </button>
