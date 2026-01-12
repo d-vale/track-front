@@ -14,7 +14,7 @@ import { uploadAndAddMediaToActivity, getActivityMedias, deleteMediaFromActivity
 
 const route = useRoute();
 const router = useRouter();
-const { addToast } = useToast;
+const { addToast } = useToast();
 
 // ID de l'activité depuis les paramètres de l'URL
 const activityId = route.params.id;
@@ -161,7 +161,6 @@ const confirmDelete = async () => {
       addToast("Erreur lors de la suppression de l'activité", "error");
     } else {
       console.log('Suppression réussie, redirection vers /home');
-      addToast("Activité supprimée avec succès", "success");
       router.push({ path: "/home", query: { deleted: "true" } });
     }
   } catch (err) {
