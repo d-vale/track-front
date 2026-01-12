@@ -14,7 +14,7 @@ const age = ref("");
 const weight = ref("");
 const errorMessage = ref("");
 
-const { data, error, execute } = useFetchJson({
+const { data, error, loading, execute } = useFetchJson({
   url: "/api/auth/create-account",
   method: "POST",
   immediate: false,
@@ -22,16 +22,25 @@ const { data, error, execute } = useFetchJson({
 
 const handleRegister = async () => {
   errorMessage.value = "";
-  
+
   // Validation basique
-  if (!username.value || !firstname.value || !lastname.value || !email.value || !password.value || !age.value || !weight.value) {
+  if (
+    !username.value ||
+    !firstname.value ||
+    !lastname.value ||
+    !email.value ||
+    !password.value ||
+    !age.value ||
+    !weight.value
+  ) {
     errorMessage.value = "Veuillez remplir tous les champs";
     return;
   }
 
   // Validation username (3-30 caractères)
   if (username.value.length < 3 || username.value.length > 30) {
-    errorMessage.value = "Le nom d'utilisateur doit contenir entre 3 et 30 caractères";
+    errorMessage.value =
+      "Le nom d'utilisateur doit contenir entre 3 et 30 caractères";
     return;
   }
 
@@ -96,10 +105,14 @@ const handleRegister = async () => {
   if (data.value?.success) {
     router.push({ path: "/login", query: { registered: "true" } });
   } else if (error.value) {
-    console.error(`Erreur API: ${error.value.status} - ${error.value.statusText}`);
+    console.error(
+      `Erreur API: ${error.value.status} - ${error.value.statusText}`
+    );
     errorMessage.value = `Erreur ${error.value.status}: ${error.value.statusText}. Vérifiez que l'API est accessible.`;
   } else if (data.value?.data?.error) {
-    console.error(`Erreur serveur: ${data.value.data.error.code} - ${data.value.data.error.message}`);
+    console.error(
+      `Erreur serveur: ${data.value.data.error.code} - ${data.value.data.error.message}`
+    );
     errorMessage.value = data.value.data.error.message;
   } else if (data.value) {
     console.error("Réponse inattendue:", data.value);
@@ -110,17 +123,32 @@ const handleRegister = async () => {
 
 <template>
   <div class="flex flex-col items-center gap-8 min-h-screen justify-center">
-    <img class="h-10" src="/logo.svg" alt="" />
+    <svg
+      class="h-10 w-10"
+      viewBox="0 0 29 29"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M14.5 14.5H29V4.17233e-07L14.5 14.5Z" fill="var(--noir)" />
+      <path d="M14.5 29H29V14.5L14.5 29Z" fill="var(--noir)" />
+      <path d="M0 29H14.5V14.5L0 29Z" fill="var(--noir)" />
+      <path d="M0 14.5H14.5V4.17233e-07L0 14.5Z" fill="var(--noir)" />
+    </svg>
     <div class="flex flex-col items-center gap-2">
       <h2 class="text-2xl font-medium leading-tight">Créer un compte</h2>
-      <p class="text-md leading-tight text-gray-400 font-light">Bienvenue sur tracks, veuillez créer votre compte</p>
+      <p class="text-md leading-tight text-gray-400 font-light">
+        Bienvenue sur tracks, veuillez créer votre compte
+      </p>
     </div>
 
     <form
       @submit.prevent="handleRegister()"
       class="flex flex-col gap-4 w-full px-2 max-w-sm"
     >
-      <div v-if="errorMessage" class="p-3 bg-red-900 border border-red-700 rounded-lg text-red-100 text-sm">
+      <div
+        v-if="errorMessage"
+        class="p-3 bg-red-900 border border-red-700 rounded-lg text-red-100 text-sm"
+      >
         {{ errorMessage }}
       </div>
       <input
@@ -177,9 +205,31 @@ const handleRegister = async () => {
       />
       <button
         type="submit"
-        class="rounded-lg border border-transparent px-5 py-2.5 text-base font-medium bg-gray-800 dark:bg-[#1a1a1a] text-white cursor-pointer transition-colors hover:border-[#646cff]"
+        :disabled="loading"
+        class="rounded-lg border border-transparent px-5 py-2.5 text-base font-medium bg-gray-800 dark:bg-[#1a1a1a] text-white cursor-pointer transition-colors hover:border-[#646cff] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        S'inscrire
+        <svg
+          v-if="loading"
+          class="animate-spin h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <span>{{ loading ? "Inscription en cours..." : "S'inscrire" }}</span>
       </button>
     </form>
     <p class="text-sm text-gray-400">
